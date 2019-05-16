@@ -1,0 +1,37 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources</file>
+        <file>resources/images</file>
+        <file>resources/images/addarc.png</file>
+        <file>resources/images/small_setsize.png</file>
+        <file>resources/images/small_addtext.png</file>
+        <file>resources/images/unknown.xpm</file>
+        <file>resources/images/small_addline.png</file>
+        <file>resources/images/small_addrect.png</file>
+        <file>resources/images/save.gif</file>
+        <file>resources/images/print.gif</file>
+        <file>resources/images/small_shrinkwrap.png</file>
+        <file>resources/images/DeepwoodsBanner.gif</file>
+        <file>resources/images/addline.png</file>
+        <file>resources/images/shrinkwrap.png</file>
+        <file>resources/images/small_addpin.png</file>
+        <file>resources/images/close.gif</file>
+        <file>resources/images/new.gif</file>
+        <file>resources/images/gray50.xbm</file>
+        <file>resources/images/dirty.png</file>
+        <file>resources/images/addrect.png</file>
+        <file>resources/images/small_addarc.png</file>
+        <file>resources/images/clean.png</file>
+        <file>resources/images/small_addcirc.png</file>
+        <file>resources/images/addcirc.png</file>
+        <file>resources/images/questhead.xbm</file>
+        <file>resources/images/setsize.png</file>
+        <file>resources/images/info.xbm</file>
+        <file>resources/images/palette.png</file>
+        <file>resources/images/banner.gif</file>
+        <file>resources/images/openfold.png</file>
+        <file>resources/images/addpin.png</file>
+        <file>resources/images/addtext.png</file>
+        <file>resources/images/open.gif</file>
+    </qresource>
+</RCC>
