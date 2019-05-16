@@ -7,8 +7,8 @@
 #  Date          : $Date$
 #  Author        : $Author$
 #  Created By    : Robert Heller
-#  Created       : Wed May 15 21:15:11 2019
-#  Last Modified : <190516.1752>
+#  Created       : Wed May 15 21:46:00 2019
+#  Last Modified : <190516.1517>
 #
 #  Description	
 #
@@ -42,20 +42,10 @@
 #
 ##############################################################################
 
-CONFIG += debug_and_release
 
-QT += core gui svg xml
-greaterThan(QT_MAJOR_VERSION, 4) {
-  QT += widgets
-}
+HEADERS += \
+    
+SOURCES += \
+    src/main.cpp \
 
-RESOURCES += FritzingPartsSVGEditor.qrc
-
-include(pri/kitchensink.pri)
-include(pri/mainwindow.pri)
-include(pri/editors.pri)
-
-
-TARGET = FritzingPartsSVGEditor
-TEMPLATE = app
-
+    
