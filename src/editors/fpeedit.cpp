@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:51:02 2019
-//  Last Modified : <190516.2149>
+//  Last Modified : <190517.1111>
 //
 //  Description	
 //
@@ -42,6 +42,8 @@
 
 static const char rcsid[] = "@(#) : $Id$";
 
+#include <QDebug>
+
 #include "fpeedit.h"
 
 FEPCBEditor::FEPCBEditor(SizeAndVP::UnitsType units,double width,double height,const SizeAndVP::ViewportType &viewport,QWidget *parent)
@@ -56,6 +58,7 @@ FEPCBEditor::~FEPCBEditor()
 
 void FEPCBEditor::addPin()
 {
+    qDebug() << "FEPCBEditor::addPin()";
 }
 
 void FEPCBEditor::editPin(int gid)

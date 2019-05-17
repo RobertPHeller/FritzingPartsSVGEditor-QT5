@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190517.0103>
+//  Last Modified : <190517.1106>
 //
 //  Description	
 //
@@ -56,6 +56,15 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QVBoxLayout>
 
 #include "feedit.h"
+
+ToolMenuButton::ToolMenuButton(QWidget *parent) : QToolButton(parent)
+{
+    setPopupMode(QToolButton::MenuButtonPopup);
+    setArrowType(Qt::DownArrow);
+    setToolButtonStyle(Qt::ToolButtonTextOnly);
+    QObject::connect(this, SIGNAL(triggered(QAction*)),this, 
+                     SLOT(setDefaultAction(QAction*)));
+}
 
 FEEdit::FEEdit(SizeAndVP::UnitsType units, double width, 
                double height, 
@@ -127,9 +136,9 @@ void FEEdit::createToolButtons()
     toolbuttons->addAction(shrinkWrapAct);
     
     createZoomMenu();
-    zoomButton = new QToolButton(toolbuttons);
+    
+    zoomButton = new ToolMenuButton;
     zoomButton->setMenu(zoomMenu);
-    zoomButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     zoomButton->setDefaultAction(setZoom_1Act);
     toolbuttons->addWidget(zoomButton);
 }
@@ -138,22 +147,31 @@ void FEEdit::createZoomMenu()
 {
     zoomMenu = new QMenu(toolbuttons);
     setZoom_16Act = new QAction(tr("Zoom 16:1"), this);
+    zoomMenu->addAction(setZoom_16Act);
     connect(setZoom_16Act, SIGNAL(triggered()), this, SLOT(setZoom_16()));
     setZoom_8Act = new QAction(tr("Zoom 8:1"), this);
+    zoomMenu->addAction(setZoom_8Act);
     connect(setZoom_8Act, SIGNAL(triggered()), this, SLOT(setZoom_8()));
     setZoom_4Act = new QAction(tr("Zoom 4:1"), this);
+    zoomMenu->addAction(setZoom_4Act);
     connect(setZoom_4Act, SIGNAL(triggered()), this, SLOT(setZoom_4()));
     setZoom_2Act = new QAction(tr("Zoom 2:1"), this);
+    zoomMenu->addAction(setZoom_2Act);
     connect(setZoom_2Act, SIGNAL(triggered()), this, SLOT(setZoom_2()));
     setZoom_1Act = new QAction(tr("Zoom 1:1"), this);
+    zoomMenu->addAction(setZoom_1Act);
     connect(setZoom_1Act, SIGNAL(triggered()), this, SLOT(setZoom_1()));
     setZoom__5Act = new QAction(tr("Zoom 1:2"), this);
+    zoomMenu->addAction(setZoom__5Act);
     connect(setZoom__5Act, SIGNAL(triggered()), this, SLOT(setZoom__5()));
     setZoom__25Act = new QAction(tr("Zoom 1:4"), this);
+    zoomMenu->addAction(setZoom__25Act);
     connect(setZoom__25Act, SIGNAL(triggered()), this, SLOT(setZoom__25()));
     setZoom__125Act = new QAction(tr("Zoom 1:8"), this);
+    zoomMenu->addAction(setZoom__125Act);
     connect(setZoom__125Act, SIGNAL(triggered()), this, SLOT(setZoom__125()));
     setZoom__0625Act = new QAction(tr("Zoom 1:16"), this);
+    zoomMenu->addAction(setZoom__0625Act);
     connect(setZoom__0625Act, SIGNAL(triggered()), this, SLOT(setZoom__0625()));
 }
 

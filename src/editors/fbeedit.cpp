@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190516.2147>
+//  Last Modified : <190517.1112>
 //
 //  Description	
 //
@@ -42,6 +42,8 @@
 
 static const char rcsid[] = "@(#) : $Id$";
 
+#include <QDebug>
+
 #include "fbeedit.h"
 
 FEBreadboardEditor::FEBreadboardEditor(SizeAndVP::UnitsType units,double width,double height,const SizeAndVP::ViewportType &viewport,QWidget *parent)
@@ -55,6 +57,7 @@ FEBreadboardEditor::~FEBreadboardEditor()
 
 void FEBreadboardEditor::addPin()
 {
+    qDebug() << "FEBreadboardEditor::addPin()";
 }
 
 void FEBreadboardEditor::editPin(int gid)

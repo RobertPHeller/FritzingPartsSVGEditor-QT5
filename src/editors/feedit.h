@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190517.0100>
+//  Last Modified : <190517.1034>
 //
 //  Description	
 //
@@ -51,7 +51,17 @@ class QGraphicsView;
 class QLineEdit;
 class QLabel;
 class QToolBar;
-class QToolButton;
+
+#include <QToolButton>
+
+class ToolMenuButton : public QToolButton
+{
+    Q_OBJECT
+public:
+    explicit ToolMenuButton(QWidget *parent = 0);
+};
+
+
 class SizeAndVP : public QWidget {
     Q_OBJECT
 public:
@@ -251,7 +261,8 @@ private:
     QAction *zoomBy__5Act;
     void zoomBy(double relativeZoomFactor);
     QMenu     *zoomMenu;
-    QToolButton *zoomButton;
+    ToolMenuButton *zoomButton;
+    QAction *zoomAct;
     QAction *canvasContextMenuAct;
     QAction *editItemsAct;
     QAction *deleteItemsAct;
