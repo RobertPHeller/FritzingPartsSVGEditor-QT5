@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190516.1750>
+//  Last Modified : <190516.2147>
 //
 //  Description	
 //
@@ -43,4 +43,69 @@
 static const char rcsid[] = "@(#) : $Id$";
 
 #include "fbeedit.h"
+
+FEBreadboardEditor::FEBreadboardEditor(SizeAndVP::UnitsType units,double width,double height,const SizeAndVP::ViewportType &viewport,QWidget *parent)
+      : FEEdit(units,width,height,viewport,parent)
+{
+}
+
+FEBreadboardEditor::~FEBreadboardEditor()
+{
+}
+
+void FEBreadboardEditor::addPin()
+{
+}
+
+void FEBreadboardEditor::editPin(int gid)
+{
+}
+
+void FEBreadboardEditor::addRect()
+{
+}
+
+void FEBreadboardEditor::editRect(int gid)
+{
+}
+
+void FEBreadboardEditor::addLine()
+{
+}
+
+void FEBreadboardEditor::editLine(int gid)
+{
+}
+
+void FEBreadboardEditor::addCirc()
+{
+}
+
+void FEBreadboardEditor::editCirc(int gid)
+{
+}
+
+void FEBreadboardEditor::addArc()
+{
+}
+
+void FEBreadboardEditor::editArc(int gid)
+{
+}
+
+void FEBreadboardEditor::addPoly()
+{
+}
+
+void FEBreadboardEditor::editPoly(int gid)
+{
+}
+
+void FEBreadboardEditor::addText()
+{
+}
+
+void FEBreadboardEditor::editText(int gid)
+{
+}
 

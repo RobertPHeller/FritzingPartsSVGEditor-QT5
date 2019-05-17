@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190516.1756>
+//  Last Modified : <190517.0100>
 //
 //  Description	
 //
@@ -46,20 +46,66 @@
 #include <QWidget>
 #include <math.h>
 
-class QButtonGroup;
-class QGraphicsScene;
-class QScrollArea;
 class QMenu;
+class QGraphicsView;
+class QLineEdit;
+class QLabel;
+class QToolBar;
+class QToolButton;
+class SizeAndVP : public QWidget {
+    Q_OBJECT
+public:
+    typedef enum unitsType {mm, in} UnitsType;
+    typedef struct viewport {
+        double x, y, width, height;
+        viewport(double xx=0.0, double yy=0.0,
+                 double wwidth=0.0, double hheight=0.0) {
+            x = xx; y = yy; width = wwidth; height = hheight;
+        }
+        viewport& operator=(const viewport& b) {
+            x = b.x; y = b.y;
+            width = b.width; height = b.height;
+            return *this;
+        }
+    } ViewportType;
+    SizeAndVP(UnitsType units, double width, double height, 
+              const ViewportType &viewport, QWidget *parent = 0);
+    ~SizeAndVP();
+    inline UnitsType Units() const {return _units;}
+    inline void  Viewport(ViewportType &vp) const {
+        vp = _viewport;
+    }
+    inline double Width() const {return _width;}
+    inline double Height() const {return _height;}
+    void setUnits(UnitsType u);
+    void setViewport(const ViewportType &vp);
+    void setWidth(double w);
+    void setHeight(double h);
+    void updatexyposition(double x, double y);
+private:
+    UnitsType _units;
+    double _width, _height;
+    ViewportType _viewport;
+    double _xpos, _ypos;
+    QLineEdit *w, *h, *x1, *y1, *x2, *y2, *xpos, *ypos;
+    QLabel    *wUnits, *hUnits;
+    
+};
 
 class FEEdit : public QWidget 
 {
     Q_OBJECT
 public:
-    FEEdit(QWidget *parent = 0);
-    ~FEEdit();
+    FEEdit(SizeAndVP::UnitsType units = SizeAndVP::mm, 
+           double width=25.4, double height=25.4, 
+           const SizeAndVP::ViewportType &viewport = 
+                   SizeAndVP::ViewportType(0,0,254,254), 
+           QWidget *parent = 0);
+    virtual ~FEEdit();
     typedef enum {pin, rect, line, circle, arc, poly, text} ItemTypes;
     
 protected:
+    
     int gid; // GID to uniquely identify objects (including grouped objects)
     int pinno; // Pin numbers
     bool isdirty; // Dirty flag
@@ -140,14 +186,85 @@ protected:
         isdirty = false;
     }
     inline bool isDirty () const {return isdirty;}
-    QButtonGroup *toolbuttons;
-    QGraphicsScene *canvas;
+    QToolBar *toolbuttons;
+    QGraphicsView  *canvas;
+    QAction *addPinAct;
+    QAction *editPinAct;
+    QAction *addRectAct;
+    QAction *editRectAct;
+    QAction *addLineAct;
+    QAction *editLineAct;
+    QAction *addCircAct;
+    QAction *editCircAct;
+    QAction *addArcAct;
+    QAction *editArcAct;
+    QAction *addPolyAct;
+    QAction *editPolyAct;
+    QAction *addTextAct;
+    QAction *editTextAct;
+protected slots:
+    virtual void addPin() = 0;
+    virtual void editPin(int gid) = 0;
+    virtual void addRect() = 0;
+    virtual void editRect(int gid) = 0;
+    virtual void addLine() = 0;
+    virtual void editLine(int gid) = 0;
+    virtual void addCirc() = 0;
+    virtual void editCirc(int gid) = 0;
+    virtual void addArc() = 0;
+    virtual void editArc(int gid) = 0;
+    virtual void addPoly() = 0;
+    virtual void editPoly(int gid) = 0;
+    virtual void addText() = 0;
+    virtual void editText(int gid) = 0;
     
 private slots:
+    void setZoom_16()    {setZoom(16.0);}
+    void setZoom_8()     {setZoom(8.0);}
+    void setZoom_4()     {setZoom(4.0);}
+    void setZoom_2()     {setZoom(2.0);}
+    void setZoom_1()     {setZoom(1.0);}
+    void setZoom__5()    {setZoom(.5);}
+    void setZoom__25()   {setZoom(.25);}
+    void setZoom__125()  {setZoom(.125);}
+    void setZoom__0625() {setZoom(.0625);}
+    void zoomBy_2()      {zoomBy(2.0);}
+    void zoomBy__5()     {zoomBy(.5);}
+    void canvasContextMenu();
+    void editItems();
+    void deleteItems();
+    void xyposition();
+    void setsize();
+    void shrinkwrap();
 private:
-    QScrollArea *scroll;
+    QAction *setZoom_16Act;
+    QAction *setZoom_8Act;
+    QAction *setZoom_4Act;
+    QAction *setZoom_2Act;
+    QAction *setZoom_1Act;
+    QAction *setZoom__5Act;
+    QAction *setZoom__25Act;
+    QAction *setZoom__125Act;
+    QAction *setZoom__0625Act;
+    void setZoom(double newZoomFactor);
+    QAction *zoomBy_2Act;
+    QAction *zoomBy__5Act;
+    void zoomBy(double relativeZoomFactor);
     QMenu     *zoomMenu;
+    QToolButton *zoomButton;
+    QAction *canvasContextMenuAct;
+    QAction *editItemsAct;
+    QAction *deleteItemsAct;
+    QAction *xypositionAct;
+    QAction *setsizeAct;
+    QAction *shrinkWrapAct;
+    SizeAndVP *sizeAndVP;
+    
+    void createToolButtons();
+    void createZoomMenu();
 };
+
+
 
 #endif // __FEEDIT_H
 

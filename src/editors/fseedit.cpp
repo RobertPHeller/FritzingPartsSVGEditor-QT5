@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:41 2019
-//  Last Modified : <190516.1750>
+//  Last Modified : <190516.2148>
 //
 //  Description	
 //
@@ -43,4 +43,71 @@
 static const char rcsid[] = "@(#) : $Id$";
 
 #include "fseedit.h"
+
+FESchematicEditor::FESchematicEditor(SizeAndVP::UnitsType units,double width,double height,const SizeAndVP::ViewportType &viewport,QWidget *parent)
+      : FEEdit(units,width,height,viewport,parent)
+{
+}
+
+FESchematicEditor::~FESchematicEditor()
+{
+}
+
+
+void FESchematicEditor::addPin()
+{
+}
+
+void FESchematicEditor::editPin(int gid)
+{
+}
+
+void FESchematicEditor::addRect()
+{
+}
+
+void FESchematicEditor::editRect(int gid)
+{
+}
+
+void FESchematicEditor::addLine()
+{
+}
+
+void FESchematicEditor::editLine(int gid)
+{
+}
+
+void FESchematicEditor::addCirc()
+{
+}
+
+void FESchematicEditor::editCirc(int gid)
+{
+}
+
+void FESchematicEditor::addArc()
+{
+}
+
+void FESchematicEditor::editArc(int gid)
+{
+}
+
+void FESchematicEditor::addPoly()
+{
+}
+
+void FESchematicEditor::editPoly(int gid)
+{
+}
+
+void FESchematicEditor::addText()
+{
+}
+
+void FESchematicEditor::editText(int gid)
+{
+}
+
 

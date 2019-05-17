@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed May 15 21:15:11 2019
-#  Last Modified : <190516.1752>
+#  Last Modified : <190516.2143>
 #
 #  Description	
 #
@@ -43,6 +43,7 @@
 ##############################################################################
 
 CONFIG += debug_and_release
+#CONFIG += c++11
 
 QT += core gui svg xml
 greaterThan(QT_MAJOR_VERSION, 4) {
@@ -55,7 +56,7 @@ include(pri/kitchensink.pri)
 include(pri/mainwindow.pri)
 include(pri/editors.pri)
 
-
 TARGET = FritzingPartsSVGEditor
 TEMPLATE = app
+
 

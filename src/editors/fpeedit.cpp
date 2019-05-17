@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:51:02 2019
-//  Last Modified : <190516.1751>
+//  Last Modified : <190516.2149>
 //
 //  Description	
 //
@@ -43,4 +43,71 @@
 static const char rcsid[] = "@(#) : $Id$";
 
 #include "fpeedit.h"
+
+FEPCBEditor::FEPCBEditor(SizeAndVP::UnitsType units,double width,double height,const SizeAndVP::ViewportType &viewport,QWidget *parent)
+      : FEEdit(units,width,height,viewport,parent)
+{
+}
+
+FEPCBEditor::~FEPCBEditor()
+{
+}
+
+
+void FEPCBEditor::addPin()
+{
+}
+
+void FEPCBEditor::editPin(int gid)
+{
+}
+
+void FEPCBEditor::addRect()
+{
+}
+
+void FEPCBEditor::editRect(int gid)
+{
+}
+
+void FEPCBEditor::addLine()
+{
+}
+
+void FEPCBEditor::editLine(int gid)
+{
+}
+
+void FEPCBEditor::addCirc()
+{
+}
+
+void FEPCBEditor::editCirc(int gid)
+{
+}
+
+void FEPCBEditor::addArc()
+{
+}
+
+void FEPCBEditor::editArc(int gid)
+{
+}
+
+void FEPCBEditor::addPoly()
+{
+}
+
+void FEPCBEditor::editPoly(int gid)
+{
+}
+
+void FEPCBEditor::addText()
+{
+}
+
+void FEPCBEditor::editText(int gid)
+{
+}
+
 

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:48:23 2019
-//  Last Modified : <190516.1749>
+//  Last Modified : <190516.2056>
 //
 //  Description	
 //
@@ -47,8 +47,27 @@
 
 class FESchematicEditor : public FEEdit {
 public:
-    FESchematicEditor(QWidget *parent = 0);
-    ~FESchematicEditor();
+    FESchematicEditor(SizeAndVP::UnitsType units = SizeAndVP::mm, 
+           double width=25.4, double height=25.4, 
+           const SizeAndVP::ViewportType &viewport = 
+                      SizeAndVP::ViewportType(0,0,254,254),
+           QWidget *parent = 0);
+    virtual ~FESchematicEditor();
+protected slots:
+    virtual void addPin();
+    virtual void editPin(int gid);
+    virtual void addRect();
+    virtual void editRect(int gid);
+    virtual void addLine();
+    virtual void editLine(int gid);
+    virtual void addCirc();
+    virtual void editCirc(int gid);
+    virtual void addArc();
+    virtual void editArc(int gid);
+    virtual void addPoly();
+    virtual void editPoly(int gid);
+    virtual void addText();
+    virtual void editText(int gid);
 };
 
 
