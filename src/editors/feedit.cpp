@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190517.1106>
+//  Last Modified : <190517.1412>
 //
 //  Description	
 //
@@ -71,17 +71,22 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
                const SizeAndVP::ViewportType &viewport, 
                QWidget *parent) 
 {
-    canvas = new QGraphicsView(this);
+    _zoomScale = 1.0;
+    _vpscale   = 1.0;
+    canvas = new QGraphicsScene;
+    canvasView = new QGraphicsView(canvas,this);
+    canvasView->setMouseTracking(true);
     toolbuttons = new QToolBar(this);
     toolbuttons->setOrientation(Qt::Vertical);
     toolbuttons->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     sizeAndVP = new SizeAndVP(units,width,height,viewport,this);
     QGridLayout *layout = new QGridLayout(this);
-    layout->addWidget(canvas,0,0);
+    layout->addWidget(canvasView,0,0);
     layout->addWidget(toolbuttons,0,1);
     layout->addWidget(sizeAndVP,1,0,1,2);
     setLayout(layout);
     createToolButtons();
+    sizeAndVP->updateZoom(_zoomScale);
 }
 
 FEEdit::~FEEdit()
@@ -199,12 +204,44 @@ void FEEdit::setsize()
 {
 }
 
-void FEEdit::setZoom(double newZoomFactor)
+void FEEdit::setZoom(double zoomFactor)
 {
+    if (_zoomScale != 1.0) {
+        double inv = 1.0 / _zoomScale;
+        canvasView->scale(inv,inv);
+    }
+    canvasView->scale(zoomFactor,zoomFactor);
+    _zoomScale = zoomFactor;
+    sizeAndVP->updateZoom(_zoomScale);
+    //$toolbuttons itemconfigure zoom -text "[formatZoom $_zoomScale]"
+    updateSR();
 }
 
-void FEEdit::zoomBy(double relativeZoomFactor)
+void FEEdit::zoomBy(double zoomFactor)
 {
+    canvasView->scale(zoomFactor,zoomFactor);
+    _zoomScale *= zoomFactor;
+    sizeAndVP->updateZoom(_zoomScale);
+    //$toolbuttons itemconfigure zoom -text "[formatZoom $_zoomScale]"
+    updateSR();
+}
+
+void FEEdit::updateSR()
+{
+    bool newSR = false;
+    QRectF curSR = canvas->sceneRect();
+    QRectF bbox = canvas->itemsBoundingRect();
+    if (curSR.width() != bbox.width()) {
+        curSR.setWidth(bbox.width());
+        newSR = true;
+    }
+    if (curSR.height() != bbox.height()) {
+        curSR.setHeight(bbox.height());
+        newSR = true;
+    }
+    if (newSR) {
+        canvas->setSceneRect(curSR);
+    }
 }
 
 void FEEdit::shrinkwrap()
@@ -269,6 +306,13 @@ SizeAndVP::SizeAndVP(UnitsType units, double width, double height,
     ypos->setMaxLength(4);
     ypos->setText(QString::number(_ypos,'f'));
     layout->addWidget(ypos);
+    QLabel *zlab = new QLabel(" Zoom: ",this);
+    layout->addWidget(zlab);
+    z = new QLineEdit(this);
+    z->setReadOnly(true);
+    z->setMaxLength(4); 
+    z->setText(formatZoom(_zoom));
+    layout->addWidget(z);
 }
 
 SizeAndVP::~SizeAndVP()
@@ -317,3 +361,17 @@ void SizeAndVP::updatexyposition(double x, double y)
     
 }
 
+void SizeAndVP::updateZoom(double zoom)
+{
+    _zoom = zoom;
+    z->setText(formatZoom(_zoom));
+}
+
+QString SizeAndVP::formatZoom(double z)
+{
+    if (z > 1) {
+        return QString("%1:1").arg(z,0,'f',0);
+    } else {
+        return QString("1:%1").arg(1.0/z,0,'f',0);
+    }
+}

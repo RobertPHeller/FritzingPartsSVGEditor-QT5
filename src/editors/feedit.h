@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190517.1034>
+//  Last Modified : <190517.1328>
 //
 //  Description	
 //
@@ -48,6 +48,7 @@
 
 class QMenu;
 class QGraphicsView;
+class QGraphicsScene;
 class QLineEdit;
 class QLabel;
 class QToolBar;
@@ -92,14 +93,17 @@ public:
     void setWidth(double w);
     void setHeight(double h);
     void updatexyposition(double x, double y);
+    void updateZoom(double zoom);
 private:
     UnitsType _units;
     double _width, _height;
     ViewportType _viewport;
     double _xpos, _ypos;
+    double _zoom;
     QLineEdit *w, *h, *x1, *y1, *x2, *y2, *xpos, *ypos;
     QLabel    *wUnits, *hUnits;
-    
+    QLineEdit *z;
+    QString formatZoom(double zoom);
 };
 
 class FEEdit : public QWidget 
@@ -196,22 +200,7 @@ protected:
         isdirty = false;
     }
     inline bool isDirty () const {return isdirty;}
-    QToolBar *toolbuttons;
-    QGraphicsView  *canvas;
-    QAction *addPinAct;
-    QAction *editPinAct;
-    QAction *addRectAct;
-    QAction *editRectAct;
-    QAction *addLineAct;
-    QAction *editLineAct;
-    QAction *addCircAct;
-    QAction *editCircAct;
-    QAction *addArcAct;
-    QAction *editArcAct;
-    QAction *addPolyAct;
-    QAction *editPolyAct;
-    QAction *addTextAct;
-    QAction *editTextAct;
+    QGraphicsScene *canvas;
 protected slots:
     virtual void addPin() = 0;
     virtual void editPin(int gid) = 0;
@@ -247,6 +236,22 @@ private slots:
     void setsize();
     void shrinkwrap();
 private:
+    QToolBar *toolbuttons;
+    QGraphicsView  *canvasView;
+    QAction *addPinAct;
+    QAction *editPinAct;
+    QAction *addRectAct;
+    QAction *editRectAct;
+    QAction *addLineAct;
+    QAction *editLineAct;
+    QAction *addCircAct;
+    QAction *editCircAct;
+    QAction *addArcAct;
+    QAction *editArcAct;
+    QAction *addPolyAct;
+    QAction *editPolyAct;
+    QAction *addTextAct;
+    QAction *editTextAct;
     QAction *setZoom_16Act;
     QAction *setZoom_8Act;
     QAction *setZoom_4Act;
@@ -270,9 +275,11 @@ private:
     QAction *setsizeAct;
     QAction *shrinkWrapAct;
     SizeAndVP *sizeAndVP;
-    
+    double _zoomScale;
+    double _vpscale;
     void createToolButtons();
     void createZoomMenu();
+    void updateSR();
 };
 
 
