@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190517.2340>
+//  Last Modified : <190518.0949>
 //
 //  Description	
 //
@@ -205,24 +205,42 @@ void FEEdit::deleteItems()
 {
 }
 
-void FEEdit::xyposition()
-{
-}
-
 void FEEdit::setsize()
 {
 }
 
 void FEEdit::mouseMoved(QMouseEvent * event)
 {
+    int x = event->x();
+    int y = event->y();
+    QPointF canvasCoords = canvasView->mapToScene(x,y);
+    double xx = canvasCoords.x();
+    double yy = canvasCoords.y();
+    //xx /= _zoomScale;
+    //yy /= _zoomScale;
+    sizeAndVP->updatexyposition(xx,yy);
 }
 
 void FEEdit::mousePressed(QMouseEvent * event)
 {
+    int x = event->x();
+    int y = event->y();
+    int X = event->globalX();
+    int Y = event->globalY();
+    Qt::MouseButton b = event->button();
+    if (b != Qt::RightButton) return;
+    // Context menu...
 }
 
 void FEEdit::keyPressed(QKeyEvent * event)
 {
+    int k = event->key();
+    switch (k) {
+    case Qt::Key_F1: zoomBy(2.0); break;
+    case Qt::Key_F2: zoomBy(.5); break;
+    case Qt::Key_F3: setZoom(1.0); break;
+    default: return;
+    }
 }
 
 void FEEdit::resized(QResizeEvent * event)
@@ -341,8 +359,8 @@ SizeAndVP::SizeAndVP(UnitsType units, double width, double height,
     layout->addWidget(l1); // check
     w = new QLineEdit(this);
     w->setReadOnly(true);
-    w->setMaxLength(4);
-    w->setText(QString::number(_width,'f'));
+    //w->setMaxLength(4);
+    w->setText(QString::number(_width,'f',2));
     layout->addWidget(w); // check
     wUnits = new QLabel(((_units==mm)?"mm":"in"),this);
     layout->addWidget(wUnits);
@@ -350,8 +368,8 @@ SizeAndVP::SizeAndVP(UnitsType units, double width, double height,
     layout->addWidget(l2);
     h = new QLineEdit(this);
     h->setReadOnly(true);
-    h->setMaxLength(4);
-    h->setText(QString::number(_height,'f'));
+    //h->setMaxLength(4);
+    h->setText(QString::number(_height,'f',2));
     layout->addWidget(h);
     hUnits = new QLabel(((_units==mm)?"mm":"in"),this);
     layout->addWidget(hUnits);
@@ -359,41 +377,41 @@ SizeAndVP::SizeAndVP(UnitsType units, double width, double height,
     layout->addWidget(vp);
     x1 = new QLineEdit(this);
     x1->setReadOnly(true);
-    x1->setMaxLength(4);
-    x1->setText(QString::number(_viewport.x(),'f'));
+    //x1->setMaxLength(4);
+    x1->setText(QString::number(_viewport.x(),'f',2));
     layout->addWidget(x1);
     y1 = new QLineEdit(this);
     y1->setReadOnly(true);
-    y1->setMaxLength(4);
-    y1->setText(QString::number(_viewport.y(),'f'));
+    //y1->setMaxLength(4);
+    y1->setText(QString::number(_viewport.y(),'f',2));
     layout->addWidget(y1);
     x2 = new QLineEdit(this);
     x2->setReadOnly(true);
-    x2->setMaxLength(4);
-    x2->setText(QString::number(_viewport.width(),'f'));
+    //x2->setMaxLength(4);
+    x2->setText(QString::number(_viewport.width(),'f',2));
     layout->addWidget(x2);
     y2 = new QLineEdit(this);
     y2->setReadOnly(true);
-    y2->setMaxLength(4);
-    y2->setText(QString::number(_viewport.height(),'f'));
+    //y2->setMaxLength(4);
+    y2->setText(QString::number(_viewport.height(),'f',2));
     layout->addWidget(y2);
     QLabel *posl = new QLabel(" Position: ",this);
     layout->addWidget(posl);
     xpos = new QLineEdit(this);
     xpos->setReadOnly(true);
-    xpos->setMaxLength(4);
-    xpos->setText(QString::number(_xpos,'f'));
+    //xpos->setMaxLength(4);
+    xpos->setText(QString::number(_xpos,'f',2));
     layout->addWidget(xpos);
     ypos = new QLineEdit(this);
     ypos->setReadOnly(true);
-    ypos->setMaxLength(4);
-    ypos->setText(QString::number(_ypos,'f'));
+    //ypos->setMaxLength(4);
+    ypos->setText(QString::number(_ypos,'f',2));
     layout->addWidget(ypos);
     QLabel *zlab = new QLabel(" Zoom: ",this);
     layout->addWidget(zlab);
     z = new QLineEdit(this);
     z->setReadOnly(true);
-    z->setMaxLength(4); 
+    //z->setMaxLength(4); 
     z->setText(formatZoom(_zoom));
     layout->addWidget(z);
 }
@@ -420,28 +438,30 @@ void SizeAndVP::setUnits(SizeAndVP::UnitsType u)
 void SizeAndVP::setViewport(const QRectF &vp)
 {
     _viewport = vp;
-    x1->setText(QString::number(_viewport.x(),'f'));
-    y1->setText(QString::number(_viewport.y(),'f'));
-    x2->setText(QString::number(_viewport.width(),'f'));
-    y2->setText(QString::number(_viewport.height(),'f'));
+    x1->setText(QString::number(_viewport.x(),'f',2));
+    y1->setText(QString::number(_viewport.y(),'f',2));
+    x2->setText(QString::number(_viewport.width(),'f',2));
+    y2->setText(QString::number(_viewport.height(),'f',2));
 }
 
 void SizeAndVP::setWidth(double ww)
 {
     _width = ww;
-    w->setText(QString::number(_width,'f'));
+    w->setText(QString::number(_width,'f',2));
 }
 
 void SizeAndVP::setHeight(double hh)
 {
     _height = hh;
-    h->setText(QString::number(_height,'f'));
+    h->setText(QString::number(_height,'f',2));
 }
 
 void SizeAndVP::updatexyposition(double x, double y)
 {
-    // Scaling magic...
-    
+    _xpos = x;
+    _ypos = y;
+    xpos->setText(QString::number(_xpos,'f',2));
+    ypos->setText(QString::number(_ypos,'f',2));
 }
 
 void SizeAndVP::updateZoom(double zoom)

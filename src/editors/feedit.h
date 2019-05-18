@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190517.2335>
+//  Last Modified : <190518.0921>
 //
 //  Description	
 //
@@ -254,7 +254,6 @@ private slots:
     void canvasContextMenu();
     void editItems();
     void deleteItems();
-    void xyposition();
     void setsize();
     void shrinkwrap();
     void mouseMoved(QMouseEvent * event);
@@ -297,7 +296,6 @@ private:
     QAction *canvasContextMenuAct;
     QAction *editItemsAct;
     QAction *deleteItemsAct;
-    QAction *xypositionAct;
     QAction *setsizeAct;
     QAction *shrinkWrapAct;
     SizeAndVP *sizeAndVP;
