@@ -7,8 +7,8 @@
 #  Date          : $Date$
 #  Author        : $Author$
 #  Created By    : Robert Heller
-#  Created       : Wed May 15 21:15:11 2019
-#  Last Modified : <190517.2035>
+#  Created       : Fri May 17 20:02:21 2019
+#  Last Modified : <190517.2109>
 #
 #  Description	
 #
@@ -42,22 +42,15 @@
 #
 ##############################################################################
 
-CONFIG += debug_and_release
-
-QT += core gui svg xml
-greaterThan(QT_MAJOR_VERSION, 4) {
-  QT += widgets
+exists(/usr/bin/doxygen) {
+   DOXYGEN = "/usr/bin/doxygen"
+   htmldoc.target = release/html/index.html
+   htmldoc.commands = $$DOXYGEN Doxyfile
+   pdfdoc.target  = release/latex/refman.pdf
+   pdfdoc.depends = htmldoc
+   pdfdoc.commands = make -C release/latex refman.pdf
+   QMAKE_EXTRA_TARGETS += htmldoc pdfdoc
+   PRE_TARGETDEPS += html/index.html latex/refman.pdf
+} else {
+   message("Doxygen not found.  Documentation will not be built.")
 }
-
-RESOURCES += FritzingPartsSVGEditor.qrc
-
-include(pri/kitchensink.pri)
-include(pri/mainwindow.pri)
-include(pri/editors.pri)
-
-include(pri/doxygen.pri)
-
-TARGET = FritzingPartsSVGEditor
-TEMPLATE = app
-
-
