@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:17 2019
-//  Last Modified : <190516.2055>
+//  Last Modified : <190517.2230>
 //
 //  Description	
 //
@@ -42,14 +42,16 @@
 
 #ifndef __FPEEDIT_H
 #define __FPEEDIT_H
+
+#include <QRectF>
+
 #include "feedit.h"
 
 class FEPCBEditor : public FEEdit {
 public:
     FEPCBEditor(SizeAndVP::UnitsType units = SizeAndVP::mm, 
            double width=25.4, double height=25.4, 
-           const SizeAndVP::ViewportType &viewport = 
-                SizeAndVP::ViewportType(0,0,254,254),
+           const QRectF &viewport = QRectF(0,0,254,254),
            QWidget *parent = 0);
     virtual ~FEPCBEditor();
 protected slots:

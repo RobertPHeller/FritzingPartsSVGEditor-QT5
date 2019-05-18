@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 12:20:12 2019
-//  Last Modified : <190516.2208>
+//  Last Modified : <190517.2207>
 //
 //  Description	
 //
@@ -43,6 +43,7 @@
 static const char rcsid[] = "@(#) : $Id$";
 
 #include <QtWidgets>
+#include <QRectF>
 
 #include "mainwindow.h"
 #include "../editors/fbeedit.h"
@@ -288,10 +289,10 @@ void MainWindow::readSettings()
     _units = (SizeAndVP::UnitsType) settings.value("units", (int)SizeAndVP::mm).toInt();
     _width = settings.value("width", 25.4).toDouble();
     _height = settings.value("height", 25.4).toDouble();
-    _viewport.x = 0;
-    _viewport.y = 0;
-    _viewport.width = settings.value("vpwidth", 254.0).toDouble();
-    _viewport.height = settings.value("vpheight", 254.0).toDouble();
+    _viewport.setX(0);
+    _viewport.setY(0);
+    _viewport.setWidth(settings.value("vpwidth", 254.0).toDouble());
+    _viewport.setHeight(settings.value("vpheight", 254.0).toDouble());
 }
 
 void MainWindow::writeSettings()
@@ -300,8 +301,8 @@ void MainWindow::writeSettings()
     settings.setValue("units", (int)_units);
     settings.setValue("width", _width);
     settings.setValue("height", _height);
-    settings.setValue("vpwidth",_viewport.width);
-    settings.setValue("vpheight",_viewport.height);
+    settings.setValue("vpwidth",_viewport.width());
+    settings.setValue("vpheight",_viewport.height());
 }
 
 bool MainWindow::maybeSave()

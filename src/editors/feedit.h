@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190517.1328>
+//  Last Modified : <190517.2335>
 //
 //  Description	
 //
@@ -47,12 +47,47 @@
 #include <math.h>
 
 class QMenu;
-class QGraphicsView;
 class QGraphicsScene;
 class QLineEdit;
 class QLabel;
 class QToolBar;
+class QGraphicsRectItem;
 
+#include <QGraphicsView>
+
+class FEGraphicsView : public QGraphicsView
+{
+    Q_OBJECT
+public:
+    explicit FEGraphicsView(QGraphicsScene *canvas = 0, QWidget *parent = 0)
+                : QGraphicsView(canvas,parent) 
+    {
+        this->setMouseTracking(true);
+    }
+protected:
+    virtual void mouseMoveEvent(QMouseEvent * event)
+    {
+        emit mouseMoved(event);
+    }
+    virtual void mousePressEvent(QMouseEvent * event)
+    {
+        emit mousePressed(event);
+    }
+    virtual void keyPressEvent(QKeyEvent * event)
+    {
+        emit keyPressed(event);
+    }
+    virtual void resizeEvent(QResizeEvent * event)
+    {
+        emit resized(event);
+    }
+signals:
+    void mouseMoved(QMouseEvent * event);
+    void mousePressed(QMouseEvent * event);
+    void keyPressed(QKeyEvent * event);
+    void resized(QResizeEvent * event);
+};
+          
 #include <QToolButton>
 
 class ToolMenuButton : public QToolButton
@@ -67,29 +102,17 @@ class SizeAndVP : public QWidget {
     Q_OBJECT
 public:
     typedef enum unitsType {mm, in} UnitsType;
-    typedef struct viewport {
-        double x, y, width, height;
-        viewport(double xx=0.0, double yy=0.0,
-                 double wwidth=0.0, double hheight=0.0) {
-            x = xx; y = yy; width = wwidth; height = hheight;
-        }
-        viewport& operator=(const viewport& b) {
-            x = b.x; y = b.y;
-            width = b.width; height = b.height;
-            return *this;
-        }
-    } ViewportType;
     SizeAndVP(UnitsType units, double width, double height, 
-              const ViewportType &viewport, QWidget *parent = 0);
+              const QRectF &viewport, QWidget *parent = 0);
     ~SizeAndVP();
     inline UnitsType Units() const {return _units;}
-    inline void  Viewport(ViewportType &vp) const {
+    inline void  Viewport(QRectF &vp) const {
         vp = _viewport;
     }
     inline double Width() const {return _width;}
     inline double Height() const {return _height;}
     void setUnits(UnitsType u);
-    void setViewport(const ViewportType &vp);
+    void setViewport(const QRectF &vp);
     void setWidth(double w);
     void setHeight(double h);
     void updatexyposition(double x, double y);
@@ -97,7 +120,7 @@ public:
 private:
     UnitsType _units;
     double _width, _height;
-    ViewportType _viewport;
+    QRectF _viewport;
     double _xpos, _ypos;
     double _zoom;
     QLineEdit *w, *h, *x1, *y1, *x2, *y2, *xpos, *ypos;
@@ -112,8 +135,7 @@ class FEEdit : public QWidget
 public:
     FEEdit(SizeAndVP::UnitsType units = SizeAndVP::mm, 
            double width=25.4, double height=25.4, 
-           const SizeAndVP::ViewportType &viewport = 
-                   SizeAndVP::ViewportType(0,0,254,254), 
+           const QRectF &viewport = QRectF(0,0,254,254), 
            QWidget *parent = 0);
     virtual ~FEEdit();
     typedef enum {pin, rect, line, circle, arc, poly, text} ItemTypes;
@@ -235,6 +257,10 @@ private slots:
     void xyposition();
     void setsize();
     void shrinkwrap();
+    void mouseMoved(QMouseEvent * event);
+    void mousePressed(QMouseEvent * event);
+    void keyPressed(QKeyEvent * event);
+    void resized(QResizeEvent * event);
 private:
     QToolBar *toolbuttons;
     QGraphicsView  *canvasView;
@@ -277,9 +303,11 @@ private:
     SizeAndVP *sizeAndVP;
     double _zoomScale;
     double _vpscale;
+    QGraphicsRectItem *_vpRect;
     void createToolButtons();
     void createZoomMenu();
     void updateSR();
+    void makeVpRect();
 };
 
 

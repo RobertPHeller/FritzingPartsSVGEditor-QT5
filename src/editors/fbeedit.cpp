@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190517.1112>
+//  Last Modified : <190517.2228>
 //
 //  Description	
 //
@@ -43,10 +43,11 @@
 static const char rcsid[] = "@(#) : $Id$";
 
 #include <QDebug>
+#include <QRectF>
 
 #include "fbeedit.h"
 
-FEBreadboardEditor::FEBreadboardEditor(SizeAndVP::UnitsType units,double width,double height,const SizeAndVP::ViewportType &viewport,QWidget *parent)
+FEBreadboardEditor::FEBreadboardEditor(SizeAndVP::UnitsType units,double width,double height,const QRectF &viewport,QWidget *parent)
       : FEEdit(units,width,height,viewport,parent)
 {
 }

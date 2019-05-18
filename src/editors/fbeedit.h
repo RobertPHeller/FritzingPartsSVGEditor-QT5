@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:45:04 2019
-//  Last Modified : <190516.2055>
+//  Last Modified : <190517.2227>
 //
 //  Description	
 //
@@ -44,13 +44,13 @@
 #define __FBEEDIT_H
 
 #include "feedit.h"
+#include <QRectF>
 
 class FEBreadboardEditor : public FEEdit {
 public:
     FEBreadboardEditor(SizeAndVP::UnitsType units = SizeAndVP::mm, 
            double width=25.4, double height=25.4, 
-           const SizeAndVP::ViewportType &viewport = 
-                       SizeAndVP::ViewportType(0,0,254,254),
+           const QRectF &viewport = QRectF(0,0,254,254),
            QWidget *parent = 0);
     virtual ~FEBreadboardEditor();
 protected slots:

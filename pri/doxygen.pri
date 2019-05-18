@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 17 20:02:21 2019
-#  Last Modified : <190517.2109>
+#  Last Modified : <190517.2124>
 #
 #  Description	
 #
@@ -50,7 +50,7 @@ exists(/usr/bin/doxygen) {
    pdfdoc.depends = htmldoc
    pdfdoc.commands = make -C release/latex refman.pdf
    QMAKE_EXTRA_TARGETS += htmldoc pdfdoc
-   PRE_TARGETDEPS += html/index.html latex/refman.pdf
+   PRE_TARGETDEPS += release/html/index.html release/latex/refman.pdf
 } else {
    message("Doxygen not found.  Documentation will not be built.")
 }

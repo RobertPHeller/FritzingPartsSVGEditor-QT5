@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:48:23 2019
-//  Last Modified : <190516.2056>
+//  Last Modified : <190517.2229>
 //
 //  Description	
 //
@@ -43,14 +43,14 @@
 #ifndef __FSEEDIT_H
 #define __FSEEDIT_H
 
+#include <QRectF>
 #include "feedit.h"
 
 class FESchematicEditor : public FEEdit {
 public:
     FESchematicEditor(SizeAndVP::UnitsType units = SizeAndVP::mm, 
            double width=25.4, double height=25.4, 
-           const SizeAndVP::ViewportType &viewport = 
-                      SizeAndVP::ViewportType(0,0,254,254),
+           const QRectF &viewport = QRectF(0,0,254,254),
            QWidget *parent = 0);
     virtual ~FESchematicEditor();
 protected slots:

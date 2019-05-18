@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 11:58:51 2019
-//  Last Modified : <190516.2016>
+//  Last Modified : <190517.2226>
 //
 //  Description	
 //
@@ -53,6 +53,7 @@
 class FEBreadboardEditor;
 class FESchematicEditor;
 class FEPCBEditor;
+#include <QRectF>
 
 class MainWindow : public QMainWindow
 {
@@ -63,7 +64,7 @@ public:
     SizeAndVP::UnitsType Units() const {return _units;}
     double Width() const {return _width;}
     double Height() const {return _height;}
-    void Viewport (SizeAndVP::ViewportType &vp) {
+    void Viewport (QRectF &vp) {
         vp = _viewport;
     }
         
@@ -97,7 +98,7 @@ private slots:
 private:
     SizeAndVP::UnitsType _units;
     double _width, _height;
-    SizeAndVP::ViewportType _viewport;
+    QRectF _viewport;
     
     void createActions();
     void createMenus();

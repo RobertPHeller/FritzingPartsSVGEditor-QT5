@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190517.1412>
+//  Last Modified : <190517.2340>
 //
 //  Description	
 //
@@ -42,6 +42,7 @@
 
 static const char rcsid[] = "@(#) : $Id$";
 
+#include <QDebug>
 #include <QtWidgets>
 #include <QToolBar>
 #include <QToolButton>
@@ -54,6 +55,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QRectF>
 
 #include "feedit.h"
 
@@ -66,16 +68,21 @@ ToolMenuButton::ToolMenuButton(QWidget *parent) : QToolButton(parent)
                      SLOT(setDefaultAction(QAction*)));
 }
 
+
+
 FEEdit::FEEdit(SizeAndVP::UnitsType units, double width, 
                double height, 
-               const SizeAndVP::ViewportType &viewport, 
+               const QRectF &viewport, 
                QWidget *parent) 
 {
     _zoomScale = 1.0;
     _vpscale   = 1.0;
     canvas = new QGraphicsScene;
-    canvasView = new QGraphicsView(canvas,this);
-    canvasView->setMouseTracking(true);
+    canvasView = new FEGraphicsView(canvas,this);
+    connect(canvasView,SIGNAL(mouseMoved(QMouseEvent *)),this,SLOT(mouseMoved(QMouseEvent *)));
+    connect(canvasView,SIGNAL(mousePressed(QMouseEvent *)),this,SLOT(mousePressed(QMouseEvent *)));
+    connect(canvasView,SIGNAL(keyPressed(QKeyEvent *)),this,SLOT(keyPressed(QKeyEvent *)));
+    connect(canvasView,SIGNAL(resized(QResizeEvent *)),this,SLOT(resized(QResizeEvent *)));
     toolbuttons = new QToolBar(this);
     toolbuttons->setOrientation(Qt::Vertical);
     toolbuttons->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -87,6 +94,8 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
     setLayout(layout);
     createToolButtons();
     sizeAndVP->updateZoom(_zoomScale);
+    _vpRect = NULL;
+    makeVpRect();
 }
 
 FEEdit::~FEEdit()
@@ -204,6 +213,80 @@ void FEEdit::setsize()
 {
 }
 
+void FEEdit::mouseMoved(QMouseEvent * event)
+{
+}
+
+void FEEdit::mousePressed(QMouseEvent * event)
+{
+}
+
+void FEEdit::keyPressed(QKeyEvent * event)
+{
+}
+
+void FEEdit::resized(QResizeEvent * event)
+{
+    FEEdit::makeVpRect();
+}
+
+
+void FEEdit::makeVpRect()
+{
+    qDebug() << "*** FEEdit::makeVpRect()";
+    QRectF vp;
+    sizeAndVP->Viewport(vp);
+    double vpwidth = vp.width();
+    double vpheight = vp.height();
+    qDebug() << "*** FEEdit::makeVpRect() vp is " << vp;
+    double width = sizeAndVP->Width();
+    double height = sizeAndVP->Height();
+    qDebug() << "*** FEEdit::makeVpRect() width is " << width << ", height is " << height; 
+    double inv = 1.0/_zoomScale;
+    canvasView->scale(inv,inv);
+    QSize canvasSize = canvasView->size();
+    int ch = canvasSize.height();
+    int cw = canvasSize.width();
+    qDebug() << "*** FEEdit::makeVpRect() ch is " << ch << ", cw is " << cw;
+    double newvpscale;
+    if (ch <cw) {
+        newvpscale = ((double)ch)/vpheight;
+    } else {
+        newvpscale = ((double)cw)/vpwidth;
+    }
+    qDebug() << "*** FEEdit::makeVpRect() newvpscale is " << newvpscale;
+    if (_vpRect != NULL) {
+        canvas->removeItem(_vpRect);
+        _vpRect = NULL;
+    }
+    double inv_vpscale = 1.0 / _vpscale;
+    canvasView->scale(inv_vpscale,inv_vpscale);
+    _vpscale = newvpscale;
+    canvasView->scale(_vpscale,_vpscale);
+    _vpRect = canvas->addRect(vp,QPen(Qt::DashLine),QBrush(Qt::NoBrush));
+    double srx1,srx2, sry1, sry2;
+    if (vpwidth < cw) {
+        double halfspace = (cw - vpwidth) / 2.0;
+        srx1 = 0-halfspace;
+        srx2 = vpwidth+halfspace;
+    } else {
+        srx1 = 0;
+        srx2 = vpwidth;
+    }
+    if (vpheight < ch) {
+        double halfspace = (ch - vpheight) / 2.0;
+        sry1 = 0-halfspace;
+        sry2 = vpheight+halfspace;
+    } else {
+        sry1 = 0;
+        sry2 = vpheight;
+    }
+    qDebug() << "*** FEEdit::makeVpRect() new SR is " << srx1 << " " << sry1 << " " << srx2 << " " << sry2;
+    canvasView->setSceneRect(srx1,sry1,srx2,sry2);
+    canvasView->scale(_zoomScale,_zoomScale);
+    updateSR();
+}
+
 void FEEdit::setZoom(double zoomFactor)
 {
     if (_zoomScale != 1.0) {
@@ -249,7 +332,7 @@ void FEEdit::shrinkwrap()
 }
 
 SizeAndVP::SizeAndVP(UnitsType units, double width, double height,            
-                     const ViewportType &viewport, QWidget *parent)
+                     const QRectF &viewport, QWidget *parent)
       : _units(units), _width(width), _height(height), _viewport(viewport)
 {
     //QLabel *li, *l2, *vp, *posl, *l3;
@@ -277,22 +360,22 @@ SizeAndVP::SizeAndVP(UnitsType units, double width, double height,
     x1 = new QLineEdit(this);
     x1->setReadOnly(true);
     x1->setMaxLength(4);
-    x1->setText(QString::number(_viewport.x,'f'));
+    x1->setText(QString::number(_viewport.x(),'f'));
     layout->addWidget(x1);
     y1 = new QLineEdit(this);
     y1->setReadOnly(true);
     y1->setMaxLength(4);
-    y1->setText(QString::number(_viewport.y,'f'));
+    y1->setText(QString::number(_viewport.y(),'f'));
     layout->addWidget(y1);
     x2 = new QLineEdit(this);
     x2->setReadOnly(true);
     x2->setMaxLength(4);
-    x2->setText(QString::number(_viewport.width,'f'));
+    x2->setText(QString::number(_viewport.width(),'f'));
     layout->addWidget(x2);
     y2 = new QLineEdit(this);
     y2->setReadOnly(true);
     y2->setMaxLength(4);
-    y2->setText(QString::number(_viewport.height,'f'));
+    y2->setText(QString::number(_viewport.height(),'f'));
     layout->addWidget(y2);
     QLabel *posl = new QLabel(" Position: ",this);
     layout->addWidget(posl);
@@ -334,13 +417,13 @@ void SizeAndVP::setUnits(SizeAndVP::UnitsType u)
     }
 }
 
-void SizeAndVP::setViewport(const SizeAndVP::ViewportType &vp)
+void SizeAndVP::setViewport(const QRectF &vp)
 {
     _viewport = vp;
-    x1->setText(QString::number(_viewport.x,'f'));
-    y1->setText(QString::number(_viewport.y,'f'));
-    x2->setText(QString::number(_viewport.width,'f'));
-    y2->setText(QString::number(_viewport.height,'f'));
+    x1->setText(QString::number(_viewport.x(),'f'));
+    y1->setText(QString::number(_viewport.y(),'f'));
+    x2->setText(QString::number(_viewport.width(),'f'));
+    y2->setText(QString::number(_viewport.height(),'f'));
 }
 
 void SizeAndVP::setWidth(double ww)
