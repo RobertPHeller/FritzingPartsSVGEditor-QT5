@@ -7,8 +7,8 @@
 #  Date          : $Date$
 #  Author        : $Author$
 #  Created By    : Robert Heller
-#  Created       : Thu May 16 16:20:41 2019
-#  Last Modified : <190518.2349>
+#  Created       : Sat May 18 23:53:52 2019
+#  Last Modified : <190518.2355>
 #
 #  Description	
 #
@@ -44,17 +44,8 @@
 
 
 HEADERS += \
-	src/editors/feedit.h \
-	src/editors/fbeedit.h \
-	src/editors/fbedialogs.h \
-	src/editors/fseedit.h \
-	src/editors/fpeedit.h \
-	
-SOURCES += \
-	src/editors/feedit.cpp \
-	src/editors/fbeedit.cpp \
-	src/editors/fbedialogs.cpp \
-	src/editors/fseedit.cpp \
-	src/editors/fpeedit.cpp \
-	
+	src/support/ColorSelector.h
+	src/support/palette.xpm
 
+SOURCES += \
+	src/support/ColorSelector.cpp

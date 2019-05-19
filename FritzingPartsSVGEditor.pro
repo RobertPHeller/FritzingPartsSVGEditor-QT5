@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed May 15 21:15:11 2019
-#  Last Modified : <190517.2035>
+#  Last Modified : <190518.2352>
 #
 #  Description	
 #
@@ -54,6 +54,7 @@ RESOURCES += FritzingPartsSVGEditor.qrc
 include(pri/kitchensink.pri)
 include(pri/mainwindow.pri)
 include(pri/editors.pri)
+include(pri/support.pri)
 
 include(pri/doxygen.pri)
 
