@@ -7,8 +7,8 @@
 //  Date          : $Date$
 //  Author        : $Author$
 //  Created By    : Robert Heller
-//  Created       : Thu May 16 17:45:04 2019
-//  Last Modified : <190519.1005>
+//  Created       : Sun May 19 07:51:56 2019
+//  Last Modified : <190519.0938>
 //
 //  Description	
 //
@@ -40,44 +40,27 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __FBEEDIT_H
-#define __FBEEDIT_H
+#ifndef __TITLEDDIALOG_H
+#define __TITLEDDIALOG_H
 
-#include <QRectF>
+#include <QDialog>
+#include <QLabel>
+class QWidget;
 
-#include "fbedialogs.h"
-#include "feedit.h"
-
-class FEBreadboardEditor : public FEEdit {
+class TitledDialog : public QDialog
+{
+        Q_OBJECT
 public:
-    FEBreadboardEditor(SizeAndVP::UnitsType units = SizeAndVP::mm, 
-           double width=25.4, double height=25.4, 
-           const QRectF &viewport = QRectF(0,0,254,254),
-           QWidget *parent = 0);
-    virtual ~FEBreadboardEditor();
-protected slots:
-    virtual void addPin();
-    virtual void editPin(int gid);
-    virtual void addRect();
-    virtual void editRect(int gid);
-    virtual void addLine();
-    virtual void editLine(int gid);
-    virtual void addCirc();
-    virtual void editCirc(int gid);
-    virtual void addArc();
-    virtual void editArc(int gid);
-    virtual void addPoly();
-    virtual void editPoly(int gid);
-    virtual void addText();
-    virtual void editText(int gid);
+    enum DialogType {Info, Warning, Question, Error};
+    TitledDialog(DialogType type = Question, QWidget *parent = NULL);
+    inline QString title() const {return titleLB->text();}
+    inline void setTitle(const QString &title) {titleLB->setText(title);}
+    inline QWidget* getFrame() {return body;}
+    inline void setLayout(QLayout *layout) {body->setLayout(layout);}
 private:
-    Breadboard::AddPinDialog *addPinDialog;
-    Breadboard::AddRectDialog *addRectDialog;
-    Breadboard::AddLineDialog *addLineDialog;
-    Breadboard::AddCircDialog *addCircDialog;
-    Breadboard::AddArcDialog *addArcDialog;
-    Breadboard::AddTextDialog *addTextDialog;
+    QWidget *body;
+    QLabel *titleLB;
 };
 
-#endif // __FBEEDIT_H
+#endif // __TITLEDDIALOG_H
 

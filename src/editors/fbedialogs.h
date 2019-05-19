@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat May 18 23:56:36 2019
-//  Last Modified : <190519.0049>
+//  Last Modified : <190519.0906>
 //
 //  Description	
 //
@@ -54,14 +54,15 @@ class QLineEdit;
 class QComboBox;
 
 #include "../support/ColorSelector.h"
+#include "../support/TitledDialog.h"
 
 namespace Breadboard {
 
-class AddPinDialog : public QDialog {
+class AddPinDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddPinDialog(QWidget *parent = 0);
-    bool draw(double &xpos, double &ypos, double &diameter, QColor &color, int &pinno);
+    bool draw(double &xpos, double &ypos, double &diameter, QColor &color, int &pinno, bool editing = true, QString title=tr("Edit Pin"), QString button=tr("Edit"));
 private:
     QDoubleSpinBox *xposSB;
     QDoubleSpinBox *yposSB;
@@ -73,11 +74,11 @@ private slots:
     void acceptCheck();
 };
 
-class AddRectDialog : public QDialog {
+class AddRectDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddRectDialog(QWidget *parent = 0);
-    bool draw(double &xpos, double &ypos, double &width, double &height, double &linethickness, QColor &color, bool &filled);
+    bool draw(double &xpos, double &ypos, double &width, double &height, double &linethickness, QColor &color, bool &filled, bool editing = true, QString title=tr("Edit Rectangle"), QString button=tr("Edit"));
 private:
     QDoubleSpinBox *xposSB;
     QDoubleSpinBox *yposSB;
@@ -87,15 +88,15 @@ private:
     ColorSelector *colorCS;
     QCheckBox *filledCKB;
     QPushButton *addButton;
-private slots:                                                                  
+private slots:
     void acceptCheck();
 };
 
-class AddLineDialog : public QDialog {
+class AddLineDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddLineDialog(QWidget *parent = 0);
-    bool draw(double &x1, double &y1, double &x2, double &y2, double &linethickness, QColor &color);
+    bool draw(double &x1, double &y1, double &x2, double &y2, double &linethickness, QColor &color, bool editing = true, QString title=tr("Edit Line"), QString button=tr("Edit"));
 private:
     QDoubleSpinBox *x1SB;
     QDoubleSpinBox *y1SB;
@@ -104,15 +105,15 @@ private:
     QDoubleSpinBox *linethicknessSB;
     ColorSelector *colorCS;
     QPushButton *addButton;
-private slots:                                                                  
+private slots:
     void acceptCheck();
 };
 
-class AddCircDialog : public QDialog {
+class AddCircDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddCircDialog(QWidget *parent = 0);
-    bool draw(double &xpos, double &ypos, double &diameter, double &center, QColor &color);
+    bool draw(double &xpos, double &ypos, double &diameter, double &center, QColor &color, bool editing = true, QString title=tr("Edit Circle"), QString button=tr("Edit"));
 private:
     QDoubleSpinBox *xposSB;
     QDoubleSpinBox *yposSB;
@@ -124,11 +125,11 @@ private slots:
     void acceptCheck();
 };
 
-class AddArcDialog : public QDialog {
+class AddArcDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddArcDialog(QWidget *parent = 0);
-    bool draw(double &xpos, double &ypos, double &diameter, double &center, double &start, double &extent, QColor &color);
+    bool draw(double &xpos, double &ypos, double &diameter, double &center, double &start, double &extent, QColor &color, bool editing = true, QString title=tr("Edit Arc"), QString button=tr("Edit"));
 private:
     QDoubleSpinBox *xposSB;
     QDoubleSpinBox *yposSB;
@@ -142,11 +143,11 @@ private slots:
     void acceptCheck();
 };
 
-class AddTextDialog : public QDialog {
+class AddTextDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddTextDialog(QWidget *parent = 0);
-    bool draw(double &xpos, double &ypos, QString &text, QString &font, double &size, QColor &color);
+    bool draw(double &xpos, double &ypos, QString &text, QString &font, double &size, QColor &color, bool editing = true, QString title=tr("Edit Text"), QString button=tr("Edit"));
 private:
     QDoubleSpinBox *xposSB;
     QDoubleSpinBox *yposSB;

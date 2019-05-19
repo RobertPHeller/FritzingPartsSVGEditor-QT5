@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat May 18 23:53:52 2019
-#  Last Modified : <190518.2355>
+#  Last Modified : <190519.0805>
 #
 #  Description	
 #
@@ -44,8 +44,12 @@
 
 
 HEADERS += \
-	src/support/ColorSelector.h
-	src/support/palette.xpm
+	src/support/ColorSelector.h \
+	src/support/palette.xpm \
+	src/support/TitledDialog.h \
+	src/support/questhead.xpm \
+	src/support/info.xpm
 
 SOURCES += \
-	src/support/ColorSelector.cpp
+	src/support/ColorSelector.cpp \
+	src/support/TitledDialog.cpp
