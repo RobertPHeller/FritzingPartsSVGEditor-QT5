@@ -1,4 +1,4 @@
-// -!- c++ -!- //////////////////////////////////////////////////////////////
+// -!- c++ -!- //////////////////////////////////////////////////////////////
 //
 //  System        : 
 //  Module        : 
@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190519.2128>
+//  Last Modified : <190520.0957>
 //
 //  Description	
 //
@@ -46,19 +46,44 @@
 #include <QWidget>
 #include <math.h>
 
-class QMenu;
+#include <QMenu>
 class QLineEdit;
 class QLabel;
 class QToolBar;
 class QGraphicsRectItem;
 
+class FEContextMenu : public QMenu 
+{
+    Q_OBJECT
+public:
+    explicit FEContextMenu(QWidget *parent = Q_NULLPTR) : QMenu(parent) {}
+    explicit FEContextMenu(const QString &title, QWidget *parent = Q_NULLPTR)
+                : QMenu(title,parent) {}
+    const QAction *findAction(const QString &label) const {
+        QList<QAction *> acts = actions();
+        for (QList<QAction *>::const_iterator ia = acts.begin();
+             ia != acts.end();
+             ia++) {
+            QAction *act = *ia;
+            if (act->text() == label) {
+                return act;
+            }
+        }
+        return NULL;
+    }
+    inline int actionCount() const {return actions().size();}
+};
+             
+
+
 #include <QGraphicsItem>
 #include <QList>
 
-#include <QGraphicsScene>
+typedef QList<QGraphicsItem *> ItemList;
+typedef ItemList::const_iterator items_constInterator;
+typedef ItemList::iterator items_Interator;
 
-typedef QList<QGraphicsItem *>::const_iterator items_constInterator;
-typedef QList<QGraphicsItem *>::iterator items_Interator;
+#include <QGraphicsScene>
 
 class FEGraphicsScene : public QGraphicsScene
 {
@@ -77,10 +102,16 @@ public:
     {
     }
 public:
-    QList<QGraphicsItem *> withtagEQ (int key, const QVariant &value)
+    enum TagType {Gid=1, Pinno, Type, Group1, Group2, Group3, Group4, Group5,
+              Orientation, Length, Inverted};
+    enum GroupIdType {Breadboard=1, Schematic, Silkscreen, Copper0, Copper1,
+              PinConnections, PinLabels, PinNumbers, Pins};
+    enum ItemType {Undefined = 0, Pin, Rect, Line, Circle, Arc, Poly, Text};
+    ItemList withtagEQ (TagType tag, const QVariant &value)
     {
-        QList<QGraphicsItem *> allitems = items();
-        QList<QGraphicsItem *> result;
+        int key = (int)tag;
+        ItemList allitems = items();
+        ItemList result;
         for (items_constInterator i = allitems.begin(); i != allitems.end(); i++) {
             QGraphicsItem *item = *i;
             QVariant v = item->data(key);
@@ -88,10 +119,11 @@ public:
         }
         return result;
     }
-    QList<QGraphicsItem *> withtagNE (int key, const QVariant &value)
+    ItemList withtagNE (TagType tag, const QVariant &value)
     {
-        QList<QGraphicsItem *> allitems = items();
-        QList<QGraphicsItem *> result;
+        int key = (int)tag;
+        ItemList allitems = items();
+        ItemList result;
         for (items_constInterator i = allitems.begin(); i != allitems.end(); i++) {
             QGraphicsItem *item = *i;
             QVariant v = item->data(key);
@@ -260,12 +292,9 @@ protected:
     }
     
     QMenu *itemcontextmenu;
-    QMenu *canvascontextmenu;
-    int itemContext_gid;
-    QString itemContext_label;
+    FEContextMenu *canvascontextmenu;
     ItemTypes itemContext_itemtype;
     
-    void deleteItem (int gid,  QString label = "");
     inline void setDirty () {
         isdirty = true;
     }
@@ -302,9 +331,12 @@ private slots:
     void setZoom__0625() {setZoom(.0625);}
     void zoomBy_2()      {zoomBy(2.0);}
     void zoomBy__5()     {zoomBy(.5);}
-    void canvasContextMenu();
-    void editItems();
-    void deleteItems();
+    //void canvasContextMenu();
+    //void editItems();
+    //void deleteItems();
+    void itemContext(int gid, const QString &label, int X, int Y);
+    void deleteItem (int gid,  QString label = "");
+    void editItem(int gid);
     void setsize();
     void shrinkwrap();
     void mouseMoved(QMouseEvent * event);
@@ -344,9 +376,9 @@ private:
     QMenu     *zoomMenu;
     ToolMenuButton *zoomButton;
     QAction *zoomAct;
-    QAction *canvasContextMenuAct;
-    QAction *editItemsAct;
-    QAction *deleteItemsAct;
+    //QAction *canvasContextMenuAct;
+    //QAction *editItemsAct;
+    //QAction *deleteItemsAct;
     QAction *setsizeAct;
     QAction *shrinkWrapAct;
     SizeAndVP *sizeAndVP;
@@ -355,6 +387,7 @@ private:
     QGraphicsRectItem *_vpRect;
     void createToolButtons();
     void createZoomMenu();
+    void createContextMenus();
     void updateSR();
     void makeVpRect();
 };

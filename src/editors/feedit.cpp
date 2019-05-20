@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190519.2107>
+//  Last Modified : <190520.1011>
 //
 //  Description	
 //
@@ -98,6 +98,7 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
     layout->addWidget(sizeAndVP,1,0,1,2);
     setLayout(layout);
     createToolButtons();
+    createContextMenus();
     sizeAndVP->updateZoom(_zoomScale);
     _vpRect = NULL;
     makeVpRect();
@@ -105,6 +106,12 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
 
 FEEdit::~FEEdit()
 {
+}
+
+void FEEdit::createContextMenus()
+{
+    itemcontextmenu = new QMenu(tr("Item nnn"));
+    canvascontextmenu = new FEContextMenu(tr("Select item"));
 }
 
 void FEEdit::createToolButtons()
@@ -198,17 +205,17 @@ void FEEdit::deleteItem (int gid,  QString label)
 {
 }
 
-void FEEdit::canvasContextMenu()
-{
-}
+//void FEEdit::canvasContextMenu()
+//{
+//}
 
-void FEEdit::editItems()
-{
-}
-
-void FEEdit::deleteItems()
-{
-}
+//void FEEdit::editItems()
+//{
+//}
+//
+//void FEEdit::deleteItems()
+//{
+//}
 
 void FEEdit::setsize()
 {
@@ -228,13 +235,128 @@ void FEEdit::mouseMoved(QMouseEvent * event)
 
 void FEEdit::mousePressed(QMouseEvent * event)
 {
-    int x = event->x();
-    int y = event->y();
-    int X = event->globalX();
-    int Y = event->globalY();
     Qt::MouseButton b = event->button();
     if (b != Qt::RightButton) return;
     // Context menu...
+    int x = event->x();
+    int y = event->y();
+    QPointF canvasCoords = canvasView->mapToScene(x,y);
+    double xx = canvasCoords.x();
+    double yy = canvasCoords.y();
+    ItemList nearbyItems = canvas->items(QRectF(xx-10, yy-10, 20, 20));
+    if (nearbyItems.size() == 0) return;
+    canvascontextmenu->clear();
+    int X = event->globalX();
+    int Y = event->globalY();
+    QAction *act = NULL;
+    for (items_constInterator ii = nearbyItems.begin();
+         ii != nearbyItems.end();
+         ii++) {
+        QGraphicsItem *item = *ii;
+        int gid = item->data((int)FEGraphicsScene::Gid).toInt();
+        FEGraphicsScene::ItemType itemtype = (FEGraphicsScene::ItemType)
+              item->data((int)FEGraphicsScene::Type).toInt();
+        if (gid < 1 || itemtype == FEGraphicsScene::Undefined) {
+            continue;
+        }
+        switch (itemtype) {
+        case FEGraphicsScene::Pin: {
+            int pinno = item->data((int)FEGraphicsScene::Pinno).toInt();
+            QString label = QString("Pin %1").arg(pinno);
+            if (canvascontextmenu->findAction(label) == NULL) {
+                act = canvascontextmenu->addAction(label);
+                connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            }
+            break;
+        }            
+        case FEGraphicsScene::Rect: {
+            QString label = QString("Rectangle %1").arg(gid);
+            act = canvascontextmenu->addAction(label);
+            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            break;
+        }
+        case FEGraphicsScene::Line: {
+            QString label = QString("Line %1").arg(gid);
+            act = canvascontextmenu->addAction(label);
+            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            break;
+        }
+        case FEGraphicsScene::Circle: {
+            QString label = QString("Circle %1").arg(gid);
+            act = canvascontextmenu->addAction(label);
+            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            break;
+        }
+        case FEGraphicsScene::Arc: {
+            QString label = QString("Arc %1").arg(gid);
+            act = canvascontextmenu->addAction(label);
+            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            break;
+        }
+        case FEGraphicsScene::Poly: {
+            QString label = QString("Polygon %1").arg(gid);
+            act = canvascontextmenu->addAction(label);
+            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            break;
+        }
+        case FEGraphicsScene::Text: {
+            QString label = QString("Text %1").arg(gid);
+            act = canvascontextmenu->addAction(label);
+            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    if (canvascontextmenu->isEmpty()) {return;}
+    if (canvascontextmenu->actionCount() == 1) {
+        act->trigger();
+    }
+    QAction *cancel = canvascontextmenu->addAction(tr("Cancel"));
+    connect(cancel,SIGNAL(triggered()),canvascontextmenu,SLOT(close()));
+    canvascontextmenu->exec(QPoint(X,Y));
+}
+
+void FEEdit::itemContext(int gid, const QString &label, int X, int Y)
+{
+    itemcontextmenu->setTitle(label);
+    itemcontextmenu->clear();
+    QAction *a = itemcontextmenu->addAction(QString(tr("Edit %1")).arg(label));
+    connect(a,SIGNAL(trigger()),this,SLOT(editItem(gid)));
+    a = itemcontextmenu->addAction(QString(tr("Delete %1")).arg(label));
+    connect(a,SIGNAL(trigger()),this,SLOT(deleteItem(gid, label)));
+    itemcontextmenu->exec(QPoint(X,Y));          
+}
+
+void FEEdit::editItem(int gid)
+{
+    ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,
+                                       QVariant(gid));
+    for (items_constInterator i = items.begin(); i != items.end(); i++)
+    {
+        QGraphicsItem *item = *i;
+        FEGraphicsScene::ItemType itemtype = (FEGraphicsScene::ItemType)
+              item->data((int)FEGraphicsScene::Type).toInt();
+        switch (itemtype) {
+        case FEGraphicsScene::Pin:
+            editPin(gid); return;
+        case FEGraphicsScene::Rect:
+            editRect(gid); return;
+        case FEGraphicsScene::Line:
+            editLine(gid); return;
+        case FEGraphicsScene::Circle:
+            editCirc(gid); return;
+        case FEGraphicsScene::Arc:
+            editArc(gid); return;
+        case FEGraphicsScene::Poly:
+            editPoly(gid); return;
+        case FEGraphicsScene::Text:
+            editText(gid); return;
+        default:
+            break;
+        }
+    }
 }
 
 void FEEdit::keyPressed(QKeyEvent * event)
