@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 07:56:55 2019
-//  Last Modified : <190516.1640>
+//  Last Modified : <190520.1653>
 //
 //  Description	
 //
@@ -47,6 +47,8 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QtDebug>
 #include <QApplication>
 
+#include "support/debug.h"
+QDebug stdError = qDebug(); //(new StdError(NULL));
 #include "mainwindow/mainwindow.h"
 
 int main(int argc, char *argv[])

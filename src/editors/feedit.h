@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190520.0957>
+//  Last Modified : <190520.1609>
 //
 //  Description	
 //
@@ -43,14 +43,23 @@
 #ifndef __FEEDIT_H
 #define __FEEDIT_H
 
+#include <QIODevice>
+#include <QDebug>
 #include <QWidget>
+#include "../support/debug.h"
 #include <math.h>
 
 #include <QMenu>
+#include <QAction>
+#include <QString>
 class QLineEdit;
 class QLabel;
 class QToolBar;
 class QGraphicsRectItem;
+
+          
+          
+
 
 class FEContextMenu : public QMenu 
 {
@@ -60,11 +69,13 @@ public:
     explicit FEContextMenu(const QString &title, QWidget *parent = Q_NULLPTR)
                 : QMenu(title,parent) {}
     const QAction *findAction(const QString &label) const {
+        stdError << "FEContextMenu::findAction(" << label << ")" << '\n';
         QList<QAction *> acts = actions();
         for (QList<QAction *>::const_iterator ia = acts.begin();
              ia != acts.end();
              ia++) {
             QAction *act = *ia;
+            stdError << "FEContextMenu::findAction(): act->text() is " << act->text() << '\n';
             if (act->text() == label) {
                 return act;
             }
@@ -180,6 +191,44 @@ public:
     explicit ToolMenuButton(QWidget *parent = 0);
 };
 
+struct FEContextMenuData {
+    int gid;
+    int rootX;
+    int rootY;
+    FEContextMenuData() : gid(0), rootX(0), rootY(0) {}
+    FEContextMenuData(int g, int X, int Y)
+                : gid(g), rootX(X), rootY(Y) 
+    {
+        stdError << "FEContextMenuData: " << gid << "," << rootX << "," << rootY << '\n';
+    }
+};
+Q_DECLARE_METATYPE(FEContextMenuData);
+
+
+class FEICAction : public QAction {
+    Q_OBJECT
+public:
+    explicit FEICAction(int gid, int X, int Y, const QString &text, QObject *parent) 
+                : QAction(text, parent)
+    {
+        setData(QVariant::fromValue(FEContextMenuData(gid,X,Y)));
+    }
+public slots:
+    void ContextTrigger() {
+        FEContextMenuData context;
+        QVariant v = data();
+        if (v.canConvert<FEContextMenuData>()) {
+            context = v.value<FEContextMenuData>();
+            emit ContextTriggerAll(context.gid,this->text(),context.rootX,context.rootY);
+            emit ContextTriggerGidLabel(context.gid,this->text());
+            emit ContextTriggerGid(context.gid);
+        }
+    }
+signals:
+    void ContextTriggerAll(int, const QString &, int, int);
+    void ContextTriggerGidLabel(int, const QString &);
+    void ContextTriggerGid(int);
+};
 
 class SizeAndVP : public QWidget {
     Q_OBJECT

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190519.1901>
+//  Last Modified : <190520.1611>
 //
 //  Description	
 //
@@ -46,7 +46,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QRectF>
 #include <QColor>
 #include <QDebug>
-
+#include "../support/debug.h"
 #include "fbedialogs.h"
 #include "fbeedit.h"
 
@@ -73,6 +73,21 @@ void FEBreadboardEditor::addPin()
     
     pinno++;
     if (addPinDialog->draw(xpos, ypos, diameter, color, pinno, false, tr("Add Pin"), tr("Add"))) {
+        gid++;
+        stdError << "FEBreadboardEditor::addPin(): gid = " << gid << '\n';
+        double radius=diameter/2.0;
+        qreal x = xpos-radius;
+        qreal y = ypos-radius;
+        qreal w = x+diameter;
+        qreal h = y+diameter;
+        stdError << "FEBreadboardEditor::addPin(): x = " << x << ", y = " << y 
+              << ", w = " << w << ", h = " << h << '\n';
+        QGraphicsItem *item = canvas->addEllipse(x,y,w,h,QPen(Qt::NoPen),QBrush(color));
+        item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+        item->setData((int)FEGraphicsScene::Pinno,QVariant(pinno));
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Pin));
+        item->setData((int)FEGraphicsScene::Group1,QVariant((int)FEGraphicsScene::Breadboard));
     }
 }
 
@@ -80,9 +95,45 @@ void FEBreadboardEditor::editPin(int gid)
 {
     double xpos = 0, ypos = 0, diameter = 1;
     QColor color("black");
-    
     int editpinno = 1;
-    if (addPinDialog->draw(xpos, ypos, diameter, color, editpinno, false, tr("Edit Pin"), tr("Edit"))) {
+    
+    ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,QVariant(gid));
+    if (items.size() == 0) {return;}
+    if (items.size() > 1) {
+        // Should not happen!
+        return;
+    }
+    QGraphicsItem *item = items[0];
+    if ((FEGraphicsScene::ItemType)(item->data((int)FEGraphicsScene::Type).toInt()) != FEGraphicsScene::Pin) {
+        // Should not happen!
+        return;
+    }
+    QGraphicsEllipseItem *eitem = (QGraphicsEllipseItem *) item;
+    QRectF coords = eitem->rect();
+    stdError << "FEBreadboardEditor::editPin(): coords.x() = " << coords.x() << ", coords.y() = " << coords.y() << ", coords.width() = " << coords.width() << ", coords.height() = " << coords.height() << '\n';
+    xpos = coords.x()+(coords.width()/2.0);
+    ypos = coords.y()+(coords.height()/2.0);
+    diameter = (coords.height()+coords.width())/2.0;
+    stdError << "FEBreadboardEditor::editPin(): xpos = " << xpos << ", ypos = " << ypos << ", diameter = " << diameter << '\n';
+    color = eitem->brush().color();
+    editpinno = eitem->data((int)FEGraphicsScene::Pinno).toInt();
+    
+    if (addPinDialog->draw(xpos, ypos, diameter, color, editpinno, true, tr("Edit Pin"), tr("Edit"))) {
+        canvas->removeItem(eitem);
+        delete eitem;
+        if (editpinno > pinno) pinno = editpinno;
+        //gid++;
+        double radius=diameter/2.0;
+        qreal x = xpos-radius;
+        qreal y = ypos-radius;
+        qreal w = x+diameter;
+        qreal h = y+diameter;
+        QGraphicsItem *item = canvas->addEllipse(x,y,w,h,QPen(Qt::NoPen),QBrush(color));
+        item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+        item->setData((int)FEGraphicsScene::Pinno,QVariant(pinno));
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Pin));
+        item->setData((int)FEGraphicsScene::Group1,QVariant((int)FEGraphicsScene::Breadboard));
     }
 }
 

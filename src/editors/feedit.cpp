@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190520.1011>
+//  Last Modified : <190520.1645>
 //
 //  Description	
 //
@@ -42,6 +42,7 @@
 
 static const char rcsid[] = "@(#) : $Id$";
 
+#include <iostream>
 #include <QDebug>
 #include <QtWidgets>
 #include <QToolBar>
@@ -80,6 +81,9 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
                const QRectF &viewport, 
                QWidget *parent) 
 {
+    gid = 0;
+    pinno = 0;
+    isdirty = false;
     _zoomScale = 1.0;
     _vpscale   = 1.0;
     canvas = new FEGraphicsScene;
@@ -203,6 +207,7 @@ void FEEdit::createZoomMenu()
 
 void FEEdit::deleteItem (int gid,  QString label)
 {
+    
 }
 
 //void FEEdit::canvasContextMenu()
@@ -248,70 +253,67 @@ void FEEdit::mousePressed(QMouseEvent * event)
     canvascontextmenu->clear();
     int X = event->globalX();
     int Y = event->globalY();
-    QAction *act = NULL;
+    FEICAction *act = NULL;
+    QString label;
+    int gid;
+    stdError << "FEEdit::mousePressed()" << '\n';
     for (items_constInterator ii = nearbyItems.begin();
          ii != nearbyItems.end();
          ii++) {
         QGraphicsItem *item = *ii;
-        int gid = item->data((int)FEGraphicsScene::Gid).toInt();
+        stdError << "FEEdit::mousePressed(): item is " << item << '\n';
+        int newgid = item->data((int)FEGraphicsScene::Gid).toInt();
+        stdError << "FEEdit::mousePressed(): gid = " << gid << '\n';
         FEGraphicsScene::ItemType itemtype = (FEGraphicsScene::ItemType)
               item->data((int)FEGraphicsScene::Type).toInt();
-        if (gid < 1 || itemtype == FEGraphicsScene::Undefined) {
+        if (newgid < 1 || itemtype == FEGraphicsScene::Undefined) {
             continue;
         }
+        gid = newgid;
         switch (itemtype) {
         case FEGraphicsScene::Pin: {
             int pinno = item->data((int)FEGraphicsScene::Pinno).toInt();
-            QString label = QString("Pin %1").arg(pinno);
-            if (canvascontextmenu->findAction(label) == NULL) {
-                act = canvascontextmenu->addAction(label);
-                connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
-            }
+            label = QString("Pin %1").arg(pinno);
+            if (canvascontextmenu->findAction(label) != NULL) {continue;}
             break;
         }            
         case FEGraphicsScene::Rect: {
-            QString label = QString("Rectangle %1").arg(gid);
-            act = canvascontextmenu->addAction(label);
-            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            label = QString("Rectangle %1").arg(gid);
             break;
         }
         case FEGraphicsScene::Line: {
-            QString label = QString("Line %1").arg(gid);
-            act = canvascontextmenu->addAction(label);
-            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            label = QString("Line %1").arg(gid);
             break;
         }
         case FEGraphicsScene::Circle: {
-            QString label = QString("Circle %1").arg(gid);
-            act = canvascontextmenu->addAction(label);
-            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            label = QString("Circle %1").arg(gid);
             break;
         }
         case FEGraphicsScene::Arc: {
-            QString label = QString("Arc %1").arg(gid);
-            act = canvascontextmenu->addAction(label);
-            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            label = QString("Arc %1").arg(gid);
             break;
         }
         case FEGraphicsScene::Poly: {
-            QString label = QString("Polygon %1").arg(gid);
-            act = canvascontextmenu->addAction(label);
-            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            label = QString("Polygon %1").arg(gid);
             break;
         }
         case FEGraphicsScene::Text: {
-            QString label = QString("Text %1").arg(gid);
-            act = canvascontextmenu->addAction(label);
-            connect(act,SIGNAL(triggered()),this,SLOT(itemContext(gid,label,X,Y)));
+            label = QString("Text %1").arg(gid);
             break;
         }
         default:
-            break;
+            continue;
         }
+        act = new FEICAction(gid, X, Y, label, canvascontextmenu);
+        canvascontextmenu->insertAction(NULL,act);
+        connect(act,SIGNAL(triggered()),act,SLOT(ContextTrigger()));
+        connect(act,SIGNAL(ContextTriggerAll(int,const QString &,int,int)),
+                this,SLOT(itemContext(int,const QString &,int,int)));
     }
     if (canvascontextmenu->isEmpty()) {return;}
     if (canvascontextmenu->actionCount() == 1) {
-        act->trigger();
+        itemContext(gid,label,X,Y);
+        return;
     }
     QAction *cancel = canvascontextmenu->addAction(tr("Cancel"));
     connect(cancel,SIGNAL(triggered()),canvascontextmenu,SLOT(close()));
@@ -320,17 +322,25 @@ void FEEdit::mousePressed(QMouseEvent * event)
 
 void FEEdit::itemContext(int gid, const QString &label, int X, int Y)
 {
+    stdError << "FEEdit::itemContext(" << gid << "," << label << "," << X << "," << Y << ")" << '\n';
     itemcontextmenu->setTitle(label);
     itemcontextmenu->clear();
-    QAction *a = itemcontextmenu->addAction(QString(tr("Edit %1")).arg(label));
-    connect(a,SIGNAL(trigger()),this,SLOT(editItem(gid)));
-    a = itemcontextmenu->addAction(QString(tr("Delete %1")).arg(label));
-    connect(a,SIGNAL(trigger()),this,SLOT(deleteItem(gid, label)));
+    FEICAction *a = new FEICAction(gid, X, Y, QString(tr("Edit %1")).arg(label), itemcontextmenu);
+    itemcontextmenu->insertAction(NULL, a);
+    connect(a,SIGNAL(triggered()),a,SLOT(ContextTrigger()));
+    connect(a,SIGNAL(ContextTriggerGid(int)),this,SLOT(editItem(int)));
+    a = new FEICAction(gid, X, Y,QString(tr("Delete %1")).arg(label), itemcontextmenu);
+    itemcontextmenu->insertAction(NULL, a);
+    connect(a,SIGNAL(triggered()),a,SLOT(ContextTrigger()));
+    connect(a,SIGNAL(ContextTriggerGidLabel(int, const QString &)),this,SLOT(deleteItem(int, const QString&)));
+    QAction *cancel = itemcontextmenu->addAction(tr("Cancel"));
+    connect(cancel,SIGNAL(triggered()),itemcontextmenu,SLOT(close()));
     itemcontextmenu->exec(QPoint(X,Y));          
 }
 
 void FEEdit::editItem(int gid)
 {
+    stdError << "FEEdit::editItem(" << gid << ")" << '\n';
     ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,
                                        QVariant(gid));
     for (items_constInterator i = items.begin(); i != items.end(); i++)
@@ -378,30 +388,31 @@ void FEEdit::resized(QResizeEvent * event)
 
 void FEEdit::makeVpRect()
 {
-    qDebug() << "*** FEEdit::makeVpRect()";
+    stdError << "*** FEEdit::makeVpRect()" << '\n';
     QRectF vp;
     sizeAndVP->Viewport(vp);
     double vpwidth = vp.width();
     double vpheight = vp.height();
-    qDebug() << "*** FEEdit::makeVpRect() vp is " << vp;
+    stdError << "*** FEEdit::makeVpRect() vp is " << vp << '\n';
     double width = sizeAndVP->Width();
     double height = sizeAndVP->Height();
-    qDebug() << "*** FEEdit::makeVpRect() width is " << width << ", height is " << height; 
+    stdError << "*** FEEdit::makeVpRect() width is " << width << ", height is " << height << '\n'; 
     double inv = 1.0/_zoomScale;
     canvasView->scale(inv,inv);
     QSize canvasSize = canvasView->size();
     int ch = canvasSize.height();
     int cw = canvasSize.width();
-    qDebug() << "*** FEEdit::makeVpRect() ch is " << ch << ", cw is " << cw;
+    stdError << "*** FEEdit::makeVpRect() ch is " << ch << ", cw is " << cw << '\n';
     double newvpscale;
     if (ch <cw) {
         newvpscale = ((double)ch)/vpheight;
     } else {
         newvpscale = ((double)cw)/vpwidth;
     }
-    qDebug() << "*** FEEdit::makeVpRect() newvpscale is " << newvpscale;
+    stdError << "*** FEEdit::makeVpRect() newvpscale is " << newvpscale << '\n';
     if (_vpRect != NULL) {
         canvas->removeItem(_vpRect);
+        delete _vpRect;
         _vpRect = NULL;
     }
     double inv_vpscale = 1.0 / _vpscale;
@@ -426,7 +437,7 @@ void FEEdit::makeVpRect()
         sry1 = 0;
         sry2 = vpheight;
     }
-    qDebug() << "*** FEEdit::makeVpRect() new SR is " << srx1 << " " << sry1 << " " << srx2 << " " << sry2;
+    stdError << "*** FEEdit::makeVpRect() new SR is " << srx1 << " " << sry1 << " " << srx2 << " " << sry2 << '\n';
     canvasView->setSceneRect(srx1,sry1,srx2,sry2);
     canvasView->scale(_zoomScale,_zoomScale);
     updateSR();
