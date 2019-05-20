@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:45:04 2019
-//  Last Modified : <190519.1005>
+//  Last Modified : <190519.1845>
 //
 //  Description	
 //
@@ -76,6 +76,7 @@ private:
     Breadboard::AddLineDialog *addLineDialog;
     Breadboard::AddCircDialog *addCircDialog;
     Breadboard::AddArcDialog *addArcDialog;
+    Breadboard::AddPolyDialog *addPolyDialog;
     Breadboard::AddTextDialog *addTextDialog;
 };
 

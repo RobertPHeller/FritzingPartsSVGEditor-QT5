@@ -1,37 +1,36 @@
 <RCC>
     <qresource prefix="/">
-        <file>resources/images</file>
         <file>resources/images/addarc.png</file>
-        <file>resources/images/small_setsize.png</file>
-        <file>resources/images/small_addtext.png</file>
-        <file>resources/images/unknown.png</file>
-        <file>resources/images/small_addline.png</file>
-        <file>resources/images/small_addrect.png</file>
-        <file>resources/images/save.png</file>
-        <file>resources/images/print.png</file>
-        <file>resources/images/small_shrinkwrap.png</file>
-        <file>resources/images/DeepwoodsBanner.png</file>
-        <file>resources/images/addline.png</file>
-        <file>resources/images/shrinkwrap.png</file>
-        <file>resources/images/small_addpin.png</file>
-        <file>resources/images/close.png</file>
-        <file>resources/images/new.png</file>
-        <file>resources/images/exit.png</file>
-        <file>resources/images/gray50.xbm</file>
-        <file>resources/images/dirty.png</file>
-        <file>resources/images/addrect.png</file>
-        <file>resources/images/small_addarc.png</file>
-        <file>resources/images/clean.png</file>
-        <file>resources/images/small_addcirc.png</file>
         <file>resources/images/addcirc.png</file>
-        <file>resources/images/questhead.xbm</file>
-        <file>resources/images/setsize.png</file>
-        <file>resources/images/info.xbm</file>
-        <file>resources/images/palette.png</file>
-        <file>resources/images/banner.png</file>
-        <file>resources/images/openfold.png</file>
+        <file>resources/images/addline.png</file>
         <file>resources/images/addpin.png</file>
+        <file>resources/images/addpoly.png</file>
+        <file>resources/images/addrect.png</file>
         <file>resources/images/addtext.png</file>
+        <file>resources/images/banner.png</file>
+        <file>resources/images/clean.png</file>
+        <file>resources/images/close.png</file>
+        <file>resources/images/DeepwoodsBanner.png</file>
+        <file>resources/images/dirty.png</file>
+        <file>resources/images/exit.png</file>
+        <file>resources/images</file>
+        <file>resources/images/new.png</file>
+        <file>resources/images/openfold.png</file>
         <file>resources/images/open.png</file>
+        <file>resources/images/palette.png</file>
+        <file>resources/images/print.png</file>
+        <file>resources/images/save.png</file>
+        <file>resources/images/setsize.png</file>
+        <file>resources/images/shrinkwrap.png</file>
+        <file>resources/images/small_addarc.png</file>
+        <file>resources/images/small_addcirc.png</file>
+        <file>resources/images/small_addline.png</file>
+        <file>resources/images/small_addpin.png</file>
+        <file>resources/images/small_addpoly.png</file>
+        <file>resources/images/small_addrect.png</file>
+        <file>resources/images/small_addtext.png</file>
+        <file>resources/images/small_setsize.png</file>
+        <file>resources/images/small_shrinkwrap.png</file>
+        <file>resources/images/unknown.png</file>
     </qresource>
 </RCC>

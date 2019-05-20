@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190518.0921>
+//  Last Modified : <190519.2111>
 //
 //  Description	
 //
@@ -47,11 +47,49 @@
 #include <math.h>
 
 class QMenu;
-class QGraphicsScene;
 class QLineEdit;
 class QLabel;
 class QToolBar;
 class QGraphicsRectItem;
+
+#include <QGraphicsItem>
+#include <QList>
+
+#include <QGraphicsScene>
+
+typedef QList<QGraphicsItem *>::const_iterator QLQGI_constInter;
+
+class FEGraphicsScene : public QGraphicsScene
+{
+    Q_OBJECT
+public:
+    explicit FEGraphicsScene(QObject *parent = Q_NULLPTR) 
+                : QGraphicsScene(parent)
+    {
+    }
+    explicit FEGraphicsScene(const QRectF &sceneRect, QObject *parent = Q_NULLPTR)
+                : QGraphicsScene(sceneRect,parent)
+    {
+    }
+    explicit FEGraphicsScene(qreal x, qreal y, qreal width, qreal height, QObject *parent = Q_NULLPTR)
+                : QGraphicsScene(x, y, width, height, parent)
+    {
+    }
+public:
+    QList<QGraphicsItem *> withtag (int key, const QVariant &value)
+    {
+        QList<QGraphicsItem *> allitems = items();
+        QList<QGraphicsItem *> result;
+        for (QLQGI_constInter i = allitems.begin(); i != allitems.end(); i++) {
+            QGraphicsItem *item = *i;
+            QVariant v = item->data(key);
+            if (v == value) {result.push_back(item);}
+        }
+        return result;
+    }
+          
+};
+
 
 #include <QGraphicsView>
 
@@ -59,7 +97,7 @@ class FEGraphicsView : public QGraphicsView
 {
     Q_OBJECT
 public:
-    explicit FEGraphicsView(QGraphicsScene *canvas = 0, QWidget *parent = 0)
+    explicit FEGraphicsView(FEGraphicsScene *canvas = 0, QWidget *parent = 0)
                 : QGraphicsView(canvas,parent) 
     {
         this->setMouseTracking(true);
@@ -88,6 +126,8 @@ signals:
     void resized(QResizeEvent * event);
 };
           
+
+
 #include <QToolButton>
 
 class ToolMenuButton : public QToolButton
@@ -222,7 +262,7 @@ protected:
         isdirty = false;
     }
     inline bool isDirty () const {return isdirty;}
-    QGraphicsScene *canvas;
+    FEGraphicsScene *canvas;
 protected slots:
     virtual void addPin() = 0;
     virtual void editPin(int gid) = 0;
@@ -262,7 +302,7 @@ private slots:
     void resized(QResizeEvent * event);
 private:
     QToolBar *toolbuttons;
-    QGraphicsView  *canvasView;
+    FEGraphicsView  *canvasView;
     QAction *addPinAct;
     QAction *editPinAct;
     QAction *addRectAct;

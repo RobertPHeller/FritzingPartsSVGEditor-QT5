@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun May 19 07:51:56 2019
-//  Last Modified : <190519.0938>
+//  Last Modified : <190519.1950>
 //
 //  Description	
 //
@@ -53,11 +53,14 @@ class TitledDialog : public QDialog
 public:
     enum DialogType {Info, Warning, Question, Error};
     TitledDialog(DialogType type = Question, QWidget *parent = NULL);
+    TitledDialog(QIcon userIcon, QWidget *parent = NULL);
+    TitledDialog(QPixmap userPixmap, QWidget *parent = NULL);
     inline QString title() const {return titleLB->text();}
     inline void setTitle(const QString &title) {titleLB->setText(title);}
     inline QWidget* getFrame() {return body;}
     inline void setLayout(QLayout *layout) {body->setLayout(layout);}
 private:
+    void _createDialog(QPixmap pixmap);
     QWidget *body;
     QLabel *titleLB;
 };

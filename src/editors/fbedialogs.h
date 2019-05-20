@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat May 18 23:56:36 2019
-//  Last Modified : <190519.0906>
+//  Last Modified : <190519.1834>
 //
 //  Description	
 //
@@ -44,6 +44,7 @@
 #define __FBEDIALOGS_H
 
 #include <QDialog>
+#include <QPolygonF>
 
 class QColor;
 class QDoubleSpinBox;
@@ -52,6 +53,7 @@ class QPushButton;
 class QCheckBox;
 class QLineEdit;
 class QComboBox;
+class QListWidget;
 
 #include "../support/ColorSelector.h"
 #include "../support/TitledDialog.h"
@@ -142,6 +144,27 @@ private:
 private slots:
     void acceptCheck();
 };
+
+class AddPolyDialog : public TitledDialog {
+    Q_OBJECT
+public:
+    AddPolyDialog(QWidget *parent = 0);
+    bool draw(QPolygonF &points, double &linethickness, bool &filled, bool &closed, QColor &color, bool editing = true, QString title=tr("Edit Polygon"), QString button=tr("Edit"));
+private:
+    QListWidget *pointsLW;
+    QDoubleSpinBox *newx, *newy;
+    QDoubleSpinBox *linethicknessSB;
+    QCheckBox *filledCK;
+    QCheckBox *closedCK;
+    ColorSelector *colorCS;
+    QPushButton *addButton, *addPoint, *delPoints;
+private slots:
+    void acceptCheck();
+    void addPointToList();
+    void deletePointsFromList();
+};
+
+
 
 class AddTextDialog : public TitledDialog {
     Q_OBJECT

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190519.1058>
+//  Last Modified : <190519.1901>
 //
 //  Description	
 //
@@ -58,6 +58,7 @@ FEBreadboardEditor::FEBreadboardEditor(SizeAndVP::UnitsType units,double width,d
     addLineDialog = new Breadboard::AddLineDialog(this);
     addCircDialog = new Breadboard::AddCircDialog(this);
     addArcDialog = new Breadboard::AddArcDialog(this);
+    addPolyDialog = new Breadboard::AddPolyDialog(this);
     addTextDialog = new Breadboard::AddTextDialog(this);
 }
 
@@ -153,10 +154,22 @@ void FEBreadboardEditor::editArc(int gid)
 
 void FEBreadboardEditor::addPoly()
 {
+    QPolygonF points;
+    double linethickness;
+    bool filled, closed;
+    QColor color;
+    if (addPolyDialog->draw(points, linethickness, filled, closed, color, false, tr("Add Polygon"), tr("Add"))) {
+    }
 }
 
 void FEBreadboardEditor::editPoly(int gid)
 {
+    QPolygonF points;
+    double linethickness;
+    bool filled, closed;
+    QColor color;
+    if (addPolyDialog->draw(points, linethickness, filled, closed, color, true, tr("Edit Polygon"), tr("Edit"))) {
+    }
 }
 
 void FEBreadboardEditor::addText()

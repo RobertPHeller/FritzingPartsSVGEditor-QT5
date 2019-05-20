@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat May 18 23:58:19 2019
-//  Last Modified : <190519.1040>
+//  Last Modified : <190519.1956>
 //
 //  Description	
 //
@@ -50,9 +50,14 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QListWidget>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QDialogButtonBox>
+#include <QFrame>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QDebug>
 
 #include "../support/ColorSelector.h"
@@ -62,7 +67,7 @@ static const char rcsid[] = "@(#) : $Id$";
 namespace Breadboard {
 
 AddPinDialog::AddPinDialog(QWidget *parent) 
-      : TitledDialog(TitledDialog::Question,parent)
+      : TitledDialog(QIcon(":/resources/images/addpin.png"),parent)
 {
     setTitle(tr("Add Pin"));
     
@@ -148,7 +153,7 @@ void AddPinDialog::acceptCheck()
 }
 
 AddRectDialog::AddRectDialog(QWidget *parent) 
-      : TitledDialog(TitledDialog::Question,parent)
+      : TitledDialog(QIcon(":/resources/images/addrect.png"),parent)
 {
     setTitle("Add Rectangle");
     
@@ -250,7 +255,7 @@ void AddRectDialog::acceptCheck()
 }
 
 AddLineDialog::AddLineDialog(QWidget *parent)
-      : TitledDialog(TitledDialog::Question,parent)
+      : TitledDialog(QIcon(":/resources/images/addline.png"),parent)
 {
     setTitle("Add Line");
     
@@ -347,7 +352,7 @@ void AddLineDialog::acceptCheck()
 }
 
 AddCircDialog::AddCircDialog(QWidget *parent)
-      : TitledDialog(TitledDialog::Question,parent)
+      : TitledDialog(QIcon(":/resources/images/addcirc.png"),parent)
 {
     setTitle(tr("Add Circle"));
     
@@ -433,7 +438,7 @@ void AddCircDialog::acceptCheck()
 }
 
 AddArcDialog::AddArcDialog(QWidget *parent)
-      : TitledDialog(TitledDialog::Question,parent)
+      : TitledDialog(QIcon(":/resources/images/addarc.png"),parent)
 {
     setTitle(tr("Add Arc"));
     
@@ -539,8 +544,145 @@ void AddArcDialog::acceptCheck()
     }
 }
 
+AddPolyDialog::AddPolyDialog(QWidget *parent)
+      : TitledDialog(QIcon(":/resources/images/addpoly.png"),parent)
+{
+    setTitle(tr("Add Polygon"));
+    
+    QFrame *pointsFrame = new QFrame;
+    pointsFrame->setFrameShadow(QFrame::Sunken);
+    pointsFrame->setFrameShape(QFrame::Box);
+    QGridLayout *pointsFrameLayout = new QGridLayout;
+    QLabel *pointsLabel = new QLabel(tr("Poly Points:"));
+    pointsFrameLayout->addWidget(pointsLabel, 0, 0);
+    pointsLW = new QListWidget;
+    pointsLW->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    pointsFrameLayout->addWidget(pointsLW, 1, 0, 1, -1);
+    newx = new QDoubleSpinBox;
+    newx->setRange(0.0, 1000000.0);
+    newx->setSingleStep(0.1);
+    pointsFrameLayout->addWidget(newx, 2, 0);
+    newy = new QDoubleSpinBox;
+    newy->setRange(0.0, 1000000.0);
+    newy->setSingleStep(0.1);
+    pointsFrameLayout->addWidget(newy, 2, 1);
+    addPoint = new QPushButton(tr("Add Point"));
+    pointsFrameLayout->addWidget(addPoint, 2, 2);
+    connect(addPoint,SIGNAL(clicked()),this,SLOT(addPointToList()));
+    delPoints = new QPushButton(tr("Delete Selected Points"));
+    connect(delPoints,SIGNAL(clicked()),this,SLOT(deletePointsFromList()));
+    pointsFrameLayout->addWidget(delPoints,3, 0, 1, -1);
+    pointsFrame->setLayout(pointsFrameLayout);
+                        
+    QLabel *linethicknessLabel = new QLabel(tr("Line Thickness"));
+    linethicknessSB = new QDoubleSpinBox;
+    linethicknessSB->setRange(0.0, 1000000.0);
+    linethicknessSB->setSingleStep(0.1);
+    linethicknessLabel->setBuddy(linethicknessSB);
+    
+    filledCK = new QCheckBox(tr("Filled?"));
+    filledCK->setChecked(false);
+    
+    closedCK = new QCheckBox(tr("Closed?"));
+    closedCK->setChecked(false);
+    
+    QLabel *colorLabel = new QLabel(tr("Color"));
+    colorCS = new ColorSelector;
+    colorCS->setValue(QColor("black"));
+    
+    QGridLayout *mainLayout = new QGridLayout;
+    mainLayout->setSizeConstraint(QLayout::SetFixedSize);
+    mainLayout->addWidget(pointsFrame, 0, 0, 1, 2);
+    mainLayout->addWidget(linethicknessLabel, 1, 0);
+    mainLayout->addWidget(linethicknessSB, 1, 1);
+    mainLayout->addWidget(filledCK, 2, 0, 1, 2);
+    mainLayout->addWidget(closedCK, 3, 0, 1, 2);
+    mainLayout->addWidget(colorLabel, 4, 0);
+    mainLayout->addWidget(colorCS, 4, 1);
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal);
+    addButton = new QPushButton(tr("Add"));
+    addButton->setDefault(true);
+    buttonBox->addButton(addButton,QDialogButtonBox::AcceptRole); 
+    buttonBox->addButton(QDialogButtonBox::Cancel);
+    mainLayout->addWidget(buttonBox, 5, 0, 1, 2);
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(acceptCheck()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    setLayout(mainLayout);
+}
+
+bool AddPolyDialog::draw(QPolygonF &points, double &linethickness, bool &filled, bool &closed, QColor &color, bool editing, QString title, QString button)
+{
+    if (editing) {
+        while (pointsLW->count() > 0) {
+            delete pointsLW->item(0);
+        }
+        for (QPolygonF::const_iterator ip = points.begin();
+             ip !=  points.end();
+             ip++) {
+            QPointF p = *ip;
+            QString s = QString("%1,%2").arg(p.x()).arg(p.y());
+            QListWidgetItem *ele = new QListWidgetItem(s);
+            ele->setData(Qt::UserRole,  QVariant(p));
+            pointsLW->addItem(ele);
+        }
+        linethicknessSB->setValue(linethickness);
+        filledCK->setChecked(filled);
+        closedCK->setChecked(closed);
+        colorCS->setValue(color);
+    }
+    setTitle(title);
+    addButton->setText(button);
+    if (exec() == QDialog::Accepted) {
+        points.clear();
+        for (int i = 0; i < pointsLW->count(); i++) {
+            QListWidgetItem *ele = pointsLW->item(i);
+            points.push_back(ele->data(Qt::UserRole).toPointF());
+        }
+        linethickness = linethicknessSB->value();
+        filled = filledCK->isChecked();
+        closed = closedCK->isChecked();
+        color  = colorCS->value();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void AddPolyDialog::acceptCheck()
+{
+    if (colorCS->isValid() && pointsLW->count() >= 3) {
+        done(QDialog::Accepted);
+    }
+}
+
+void AddPolyDialog::addPointToList()
+{
+    double x = newx->value();
+    double y = newy->value();
+    QPointF newPoint(x,y);
+    QString s = QString("%1,%2").arg(newPoint.x()).arg(newPoint.y());
+    QListWidgetItem *ele = new QListWidgetItem(s);
+    ele->setData(Qt::UserRole,  QVariant(newPoint));
+    pointsLW->addItem(ele);
+}
+
+typedef QList<QListWidgetItem *> ItemList;
+typedef ItemList::const_iterator ItemList_ConstIterator;
+typedef ItemList::iterator ItemList_Iterator;
+
+void AddPolyDialog::deletePointsFromList()
+{
+    ItemList selection = pointsLW->selectedItems();
+    for (ItemList_ConstIterator is=selection.begin();
+         is !=selection.end();
+         is++) {
+        delete *is;
+    }
+}
+
+
 AddTextDialog::AddTextDialog(QWidget *parent)
-      : TitledDialog(TitledDialog::Question,parent)
+      : TitledDialog(QIcon(":/resources/images/addtext.png"),parent)
 {
     setTitle(tr("Add Text"));
     

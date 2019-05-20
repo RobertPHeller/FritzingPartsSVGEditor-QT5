@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190518.0949>
+//  Last Modified : <190519.2107>
 //
 //  Description	
 //
@@ -48,6 +48,8 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QToolButton>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QGraphicsItem>
+#include <QList>
 #include <QScrollArea>
 #include <QMenu>
 #include <QLineEdit>
@@ -56,8 +58,11 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QRectF>
+#include <QVariant>
 
 #include "feedit.h"
+
+
 
 ToolMenuButton::ToolMenuButton(QWidget *parent) : QToolButton(parent)
 {
@@ -77,7 +82,7 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
 {
     _zoomScale = 1.0;
     _vpscale   = 1.0;
-    canvas = new QGraphicsScene;
+    canvas = new FEGraphicsScene;
     canvasView = new FEGraphicsView(canvas,this);
     connect(canvasView,SIGNAL(mouseMoved(QMouseEvent *)),this,SLOT(mouseMoved(QMouseEvent *)));
     connect(canvasView,SIGNAL(mousePressed(QMouseEvent *)),this,SLOT(mousePressed(QMouseEvent *)));
@@ -129,7 +134,7 @@ void FEEdit::createToolButtons()
     connect(addArcAct, SIGNAL(triggered()), this, SLOT(addArc()));
     toolbuttons->addAction(addArcAct);
     
-    addPolyAct = new QAction(/*QIcon(":/resources/images/small_addpoly.png"),*/ tr("Add Poly"), this);
+    addPolyAct = new QAction(QIcon(":/resources/images/small_addpoly.png"), tr("Add Poly"), this);
     addPolyAct->setStatusTip(tr("Add a polyline/polygon"));
     connect(addPolyAct, SIGNAL(triggered()), this, SLOT(addPoly()));
     toolbuttons->addAction(addPolyAct);

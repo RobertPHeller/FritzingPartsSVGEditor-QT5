@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun May 19 08:21:59 2019
-//  Last Modified : <190519.1036>
+//  Last Modified : <190519.1954>
 //
 //  Description	
 //
@@ -48,6 +48,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPixmap>
+#include <QIcon>
 
 #include "TitledDialog.h"
 #include "error.xpm"
@@ -58,18 +59,36 @@ static const char rcsid[] = "@(#) : $Id$";
 TitledDialog::TitledDialog(TitledDialog::DialogType type, QWidget *parent)
       : QDialog(parent)
 {
+    switch (type) {
+    case Info:     _createDialog(QPixmap(info)); break;
+    case Warning:  _createDialog(QPixmap(warning)); break;
+    case Question: _createDialog(QPixmap(questhead)); break;
+    case Error:    _createDialog(QPixmap(error)); break;
+    }
+}
+
+TitledDialog::TitledDialog(QPixmap userPixmap, QWidget *parent)
+      : QDialog(parent)
+{
+    _createDialog(userPixmap);
+}
+
+TitledDialog::TitledDialog(QIcon userIcon, QWidget *parent)
+      : QDialog(parent)
+{
+    _createDialog(userIcon.pixmap(32,32));
+}
+
+
+void TitledDialog::_createDialog(QPixmap pixmap)
+{
     QWidget *heading = new QWidget(this);
     body = new QWidget(this);
     QLabel *bitmapLB = new QLabel(heading);
+    bitmapLB->setPixmap(pixmap);
     titleLB = new QLabel(heading);
     QHBoxLayout *hlayout = new QHBoxLayout(heading);
     QVBoxLayout *mainlayout = new QVBoxLayout(this);
-    switch (type) {
-    case Info:     bitmapLB->setPixmap(QPixmap(info)); break;
-    case Warning:  bitmapLB->setPixmap(QPixmap(warning)); break;
-    case Question: bitmapLB->setPixmap(QPixmap(questhead)); break;
-    case Error:    bitmapLB->setPixmap(QPixmap(error)); break;
-    }
     hlayout->addWidget(bitmapLB);
     hlayout->addWidget(titleLB);
     heading->setLayout(hlayout);
