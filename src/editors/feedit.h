@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190519.2111>
+//  Last Modified : <190519.2128>
 //
 //  Description	
 //
@@ -57,7 +57,8 @@ class QGraphicsRectItem;
 
 #include <QGraphicsScene>
 
-typedef QList<QGraphicsItem *>::const_iterator QLQGI_constInter;
+typedef QList<QGraphicsItem *>::const_iterator items_constInterator;
+typedef QList<QGraphicsItem *>::iterator items_Interator;
 
 class FEGraphicsScene : public QGraphicsScene
 {
@@ -76,18 +77,28 @@ public:
     {
     }
 public:
-    QList<QGraphicsItem *> withtag (int key, const QVariant &value)
+    QList<QGraphicsItem *> withtagEQ (int key, const QVariant &value)
     {
         QList<QGraphicsItem *> allitems = items();
         QList<QGraphicsItem *> result;
-        for (QLQGI_constInter i = allitems.begin(); i != allitems.end(); i++) {
+        for (items_constInterator i = allitems.begin(); i != allitems.end(); i++) {
             QGraphicsItem *item = *i;
             QVariant v = item->data(key);
             if (v == value) {result.push_back(item);}
         }
         return result;
     }
-          
+    QList<QGraphicsItem *> withtagNE (int key, const QVariant &value)
+    {
+        QList<QGraphicsItem *> allitems = items();
+        QList<QGraphicsItem *> result;
+        for (items_constInterator i = allitems.begin(); i != allitems.end(); i++) {
+            QGraphicsItem *item = *i;
+            QVariant v = item->data(key);
+            if (v != value) {result.push_back(item);}
+        }
+        return result;
+    }
 };
 
 
