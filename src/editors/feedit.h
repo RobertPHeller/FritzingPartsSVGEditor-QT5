@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190520.1609>
+//  Last Modified : <190521.1311>
 //
 //  Description	
 //
@@ -114,10 +114,11 @@ public:
     }
 public:
     enum TagType {Gid=1, Pinno, Type, Group1, Group2, Group3, Group4, Group5,
-              Orientation, Length, Inverted};
+              Orientation, Length, Inverted, ArcXPos, ArcYPos, ArcDiameter, 
+              ArcCenter, ArcStart, ArcExtent};
     enum GroupIdType {Breadboard=1, Schematic, Silkscreen, Copper0, Copper1,
               PinConnections, PinLabels, PinNumbers, Pins};
-    enum ItemType {Undefined = 0, Pin, Rect, Line, Circle, Arc, Poly, Text};
+    enum ItemType {Undefined = 0, Pin, Rect, Line, Circ, Arc, Poly, Text};
     ItemList withtagEQ (TagType tag, const QVariant &value)
     {
         int key = (int)tag;

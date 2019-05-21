@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat May 18 23:58:19 2019
-//  Last Modified : <190519.1956>
+//  Last Modified : <190521.1014>
 //
 //  Description	
 //
@@ -75,18 +75,21 @@ AddPinDialog::AddPinDialog(QWidget *parent)
     xposSB    = new QDoubleSpinBox;
     xposSB->setRange(0.0,1000000.0);
     xposSB->setSingleStep(0.1);
+    xposSB->setDecimals(4);
     xposLabel->setBuddy(xposSB);
     
     QLabel *yposLabel = new QLabel(tr("Y Position"));
     yposSB    = new QDoubleSpinBox;
     yposSB->setRange(0.0,1000000.0);
     yposSB->setSingleStep(0.1);
+    yposSB->setDecimals(4);
     yposLabel->setBuddy(yposSB);
     
     QLabel *diameterLabel = new QLabel(tr("Diameter"));
     diameterSB    = new QDoubleSpinBox;
     diameterSB->setRange(0.0,1000000.0);
     diameterSB->setSingleStep(0.1);
+    diameterSB->setDecimals(4);
     diameterLabel->setBuddy(diameterSB);
     
     QLabel *colorLabel    = new QLabel(tr("Color"));
@@ -161,30 +164,35 @@ AddRectDialog::AddRectDialog(QWidget *parent)
     xposSB    = new QDoubleSpinBox;
     xposSB->setRange(0.0,1000000.0);
     xposSB->setSingleStep(0.1);
+    xposSB->setDecimals(4);
     xposLabel->setBuddy(xposSB);
     
     QLabel *yposLabel = new QLabel(tr("Y Position"));
     yposSB    = new QDoubleSpinBox;
     yposSB->setRange(0.0,1000000.0);
     yposSB->setSingleStep(0.1);
+    yposSB->setDecimals(4);
     yposLabel->setBuddy(yposSB);
     
     QLabel *widthLabel = new QLabel(tr("Width"));
     widthSB    = new QDoubleSpinBox;
     widthSB->setRange(0.0,1000000.0);
     widthSB->setSingleStep(0.1);
+    widthSB->setDecimals(4);
     widthLabel->setBuddy(widthSB);
     
     QLabel *heightLabel = new QLabel(tr("Height"));
     heightSB    = new QDoubleSpinBox;
     heightSB->setRange(0.0,1000000.0);
     heightSB->setSingleStep(0.1);
+    heightSB->setDecimals(4);
     heightLabel->setBuddy(heightSB);
     
     QLabel *linethicknessLabel = new QLabel(tr("Line Thickness"));
     linethicknessSB    = new QDoubleSpinBox;
     linethicknessSB->setRange(0.0,1000000.0);
     linethicknessSB->setSingleStep(0.1);
+    linethicknessSB->setDecimals(4);
     linethicknessLabel->setBuddy(linethicknessSB);
     
     QLabel *colorLabel    = new QLabel(tr("Color"));
@@ -249,7 +257,7 @@ bool AddRectDialog::draw(double &xpos, double &ypos, double &width, double &heig
 void AddRectDialog::acceptCheck()
 {
     if (colorCS->isValid() && widthSB->value() > 0 && heightSB->value() > 0 &&
-        linethicknessSB->value() > 0) {
+        (filledCKB->isChecked() || linethicknessSB->value() > 0)) {
         done(QDialog::Accepted);
     }
 }
@@ -263,30 +271,35 @@ AddLineDialog::AddLineDialog(QWidget *parent)
     x1SB    = new QDoubleSpinBox;
     x1SB->setRange(0.0,1000000.0);
     x1SB->setSingleStep(0.1);
+    x1SB->setDecimals(4);
     x1Label->setBuddy(x1SB);
     
     QLabel *y1Label = new QLabel(tr("Y1"));
     y1SB    = new QDoubleSpinBox;
     y1SB->setRange(0.0,1000000.0);
     y1SB->setSingleStep(0.1);
+    y1SB->setDecimals(4);
     y1Label->setBuddy(y1SB);
     
     QLabel *x2Label = new QLabel(tr("X2"));
     x2SB    = new QDoubleSpinBox;
     x2SB->setRange(0.0,1000000.0);
     x2SB->setSingleStep(0.1);
+    x2SB->setDecimals(4);
     x2Label->setBuddy(x2SB);
     
     QLabel *y2Label = new QLabel(tr("Y2"));
     y2SB    = new QDoubleSpinBox;
     y2SB->setRange(0.0,1000000.0);
     y2SB->setSingleStep(0.1);
+    y2SB->setDecimals(4);
     y2Label->setBuddy(y2SB);
     
     QLabel *linethicknessLabel = new QLabel(tr("Line Thickness"));
     linethicknessSB    = new QDoubleSpinBox;
     linethicknessSB->setRange(0.0,1000000.0);
     linethicknessSB->setSingleStep(0.1);
+    linethicknessSB->setDecimals(4);
     linethicknessLabel->setBuddy(linethicknessSB);
     
     QLabel *colorLabel    = new QLabel(tr("Color"));
@@ -360,24 +373,28 @@ AddCircDialog::AddCircDialog(QWidget *parent)
     xposSB    = new QDoubleSpinBox;
     xposSB->setRange(0.0,1000000.0);
     xposSB->setSingleStep(0.1);
+    xposSB->setDecimals(4);
     xposLabel->setBuddy(xposSB);
     
     QLabel *yposLabel = new QLabel(tr("Y Position"));
     yposSB    = new QDoubleSpinBox;
     yposSB->setRange(0.0,1000000.0);
     yposSB->setSingleStep(0.1);
+    yposSB->setDecimals(4);
     yposLabel->setBuddy(yposSB);
     
     QLabel *diameterLabel = new QLabel(tr("Diameter"));
     diameterSB    = new QDoubleSpinBox;
     diameterSB->setRange(0.0,1000000.0);
     diameterSB->setSingleStep(0.1);
+    diameterSB->setDecimals(4);
     diameterLabel->setBuddy(diameterSB);
     
     QLabel *centerLabel = new QLabel(tr("Center"));
     centerSB    = new QDoubleSpinBox;
     centerSB->setRange(0.0,1000000.0);
     centerSB->setSingleStep(0.1);
+    centerSB->setDecimals(4);
     centerLabel->setBuddy(centerSB);
     
     QLabel *colorLabel    = new QLabel(tr("Color"));
@@ -446,36 +463,42 @@ AddArcDialog::AddArcDialog(QWidget *parent)
     xposSB    = new QDoubleSpinBox;
     xposSB->setRange(0.0,1000000.0);
     xposSB->setSingleStep(0.1);
+    xposSB->setDecimals(4);
     xposLabel->setBuddy(xposSB);
     
     QLabel *yposLabel = new QLabel(tr("Y Position"));
     yposSB    = new QDoubleSpinBox;
     yposSB->setRange(0.0,1000000.0);
     yposSB->setSingleStep(0.1);
+    yposSB->setDecimals(4);
     yposLabel->setBuddy(yposSB);
     
     QLabel *diameterLabel = new QLabel(tr("Diameter"));
     diameterSB    = new QDoubleSpinBox;
     diameterSB->setRange(0.0,1000000.0);
     diameterSB->setSingleStep(0.1);
+    diameterSB->setDecimals(4);
     diameterLabel->setBuddy(diameterSB);
     
     QLabel *centerLabel = new QLabel(tr("Center"));
     centerSB    = new QDoubleSpinBox;
     centerSB->setRange(0.0,1000000.0);
     centerSB->setSingleStep(0.1);
+    centerSB->setDecimals(4);
     centerLabel->setBuddy(centerSB);
     
     QLabel *startLabel = new QLabel(tr("Starting Angle"));
     startSB  = new QDoubleSpinBox;
     startSB->setRange(0.0,360.0);
     startSB->setSingleStep(0.1);
+    startSB->setDecimals(4);
     startLabel->setBuddy(startSB);
     
     QLabel *extentLabel = new QLabel(tr("Extent Angle"));
     extentSB  = new QDoubleSpinBox;
     extentSB->setRange(0.0,360.0);
     extentSB->setSingleStep(0.1);
+    extentSB->setDecimals(4);
     extentLabel->setBuddy(extentSB);
     
     QLabel *colorLabel    = new QLabel(tr("Color"));
@@ -561,10 +584,12 @@ AddPolyDialog::AddPolyDialog(QWidget *parent)
     newx = new QDoubleSpinBox;
     newx->setRange(0.0, 1000000.0);
     newx->setSingleStep(0.1);
+    newx->setDecimals(4);
     pointsFrameLayout->addWidget(newx, 2, 0);
     newy = new QDoubleSpinBox;
     newy->setRange(0.0, 1000000.0);
     newy->setSingleStep(0.1);
+    newy->setDecimals(4);
     pointsFrameLayout->addWidget(newy, 2, 1);
     addPoint = new QPushButton(tr("Add Point"));
     pointsFrameLayout->addWidget(addPoint, 2, 2);
@@ -578,6 +603,7 @@ AddPolyDialog::AddPolyDialog(QWidget *parent)
     linethicknessSB = new QDoubleSpinBox;
     linethicknessSB->setRange(0.0, 1000000.0);
     linethicknessSB->setSingleStep(0.1);
+    linethicknessSB->setDecimals(4);
     linethicknessLabel->setBuddy(linethicknessSB);
     
     filledCK = new QCheckBox(tr("Filled?"));
@@ -650,7 +676,8 @@ bool AddPolyDialog::draw(QPolygonF &points, double &linethickness, bool &filled,
 
 void AddPolyDialog::acceptCheck()
 {
-    if (colorCS->isValid() && pointsLW->count() >= 3) {
+    if (colorCS->isValid() && pointsLW->count() >= 3 &&
+        (filledCK->isChecked() || linethicknessSB->value() > 0)) {
         done(QDialog::Accepted);
     }
 }
@@ -660,7 +687,9 @@ void AddPolyDialog::addPointToList()
     double x = newx->value();
     double y = newy->value();
     QPointF newPoint(x,y);
-    QString s = QString("%1,%2").arg(newPoint.x()).arg(newPoint.y());
+    QString s = QString("%1,%2")
+          .arg(newPoint.x(),0,'f',4)
+          .arg(newPoint.y(),0,'f',4);
     QListWidgetItem *ele = new QListWidgetItem(s);
     ele->setData(Qt::UserRole,  QVariant(newPoint));
     pointsLW->addItem(ele);
@@ -690,12 +719,14 @@ AddTextDialog::AddTextDialog(QWidget *parent)
     xposSB    = new QDoubleSpinBox;
     xposSB->setRange(0.0,1000000.0);
     xposSB->setSingleStep(0.1);
+    xposSB->setDecimals(4);
     xposLabel->setBuddy(xposSB);
     
     QLabel *yposLabel = new QLabel(tr("Y Position"));
     yposSB    = new QDoubleSpinBox;
     yposSB->setRange(0.0,1000000.0);
     yposSB->setSingleStep(0.1);
+    yposSB->setDecimals(4);
     yposLabel->setBuddy(yposSB);
     
     QLabel *textLabel = new QLabel(tr("Text"));
@@ -770,7 +801,8 @@ bool AddTextDialog::draw(double &xpos, double &ypos, QString &text, QString &fon
 
 void AddTextDialog::acceptCheck()
 {
-    if (colorCS->isValid() && sizeSB->value() > 0) {
+    if (colorCS->isValid() && sizeSB->value() > 0 && 
+        !(textLE->text().isEmpty())) {
         done(QDialog::Accepted);
     }
 }

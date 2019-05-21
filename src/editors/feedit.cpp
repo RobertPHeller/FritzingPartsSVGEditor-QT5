@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190520.1645>
+//  Last Modified : <190521.1100>
 //
 //  Description	
 //
@@ -285,7 +285,7 @@ void FEEdit::mousePressed(QMouseEvent * event)
             label = QString("Line %1").arg(gid);
             break;
         }
-        case FEGraphicsScene::Circle: {
+        case FEGraphicsScene::Circ: {
             label = QString("Circle %1").arg(gid);
             break;
         }
@@ -355,7 +355,7 @@ void FEEdit::editItem(int gid)
             editRect(gid); return;
         case FEGraphicsScene::Line:
             editLine(gid); return;
-        case FEGraphicsScene::Circle:
+        case FEGraphicsScene::Circ:
             editCirc(gid); return;
         case FEGraphicsScene::Arc:
             editArc(gid); return;
@@ -415,10 +415,10 @@ void FEEdit::makeVpRect()
         delete _vpRect;
         _vpRect = NULL;
     }
-    double inv_vpscale = 1.0 / _vpscale;
-    canvasView->scale(inv_vpscale,inv_vpscale);
+    //double inv_vpscale = 1.0 / _vpscale;
+    //canvasView->scale(inv_vpscale,inv_vpscale);
     _vpscale = newvpscale;
-    canvasView->scale(_vpscale,_vpscale);
+    //canvasView->scale(_vpscale,_vpscale);
     _vpRect = canvas->addRect(vp,QPen(Qt::DashLine),QBrush(Qt::NoBrush));
     double srx1,srx2, sry1, sry2;
     if (vpwidth < cw) {
