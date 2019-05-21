@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat May 18 23:56:36 2019
-//  Last Modified : <190519.1834>
+//  Last Modified : <190521.1607>
 //
 //  Description	
 //
@@ -149,13 +149,12 @@ class AddPolyDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddPolyDialog(QWidget *parent = 0);
-    bool draw(QPolygonF &points, double &linethickness, bool &filled, bool &closed, QColor &color, bool editing = true, QString title=tr("Edit Polygon"), QString button=tr("Edit"));
+    bool draw(QPolygonF &points, double &linethickness, bool &filled, QColor &color, bool editing = true, QString title=tr("Edit Polygon"), QString button=tr("Edit"));
 private:
     QListWidget *pointsLW;
     QDoubleSpinBox *newx, *newy;
     QDoubleSpinBox *linethicknessSB;
     QCheckBox *filledCK;
-    QCheckBox *closedCK;
     ColorSelector *colorCS;
     QPushButton *addButton, *addPoint, *delPoints;
 private slots:
@@ -170,13 +169,13 @@ class AddTextDialog : public TitledDialog {
     Q_OBJECT
 public:
     AddTextDialog(QWidget *parent = 0);
-    bool draw(double &xpos, double &ypos, QString &text, QString &font, double &size, QColor &color, bool editing = true, QString title=tr("Edit Text"), QString button=tr("Edit"));
+    bool draw(double &xpos, double &ypos, QString &text, QString &font, int &size, QColor &color, bool editing = true, QString title=tr("Edit Text"), QString button=tr("Edit"));
 private:
     QDoubleSpinBox *xposSB;
     QDoubleSpinBox *yposSB;
     QLineEdit *textLE;
     QComboBox *fontCB;
-    QDoubleSpinBox *sizeSB;
+    QSpinBox *sizeSB;
     ColorSelector *colorCS;
     QPushButton *addButton;
 private slots:

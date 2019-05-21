@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat May 18 23:58:19 2019
-//  Last Modified : <190521.1014>
+//  Last Modified : <190521.1609>
 //
 //  Description	
 //
@@ -609,9 +609,6 @@ AddPolyDialog::AddPolyDialog(QWidget *parent)
     filledCK = new QCheckBox(tr("Filled?"));
     filledCK->setChecked(false);
     
-    closedCK = new QCheckBox(tr("Closed?"));
-    closedCK->setChecked(false);
-    
     QLabel *colorLabel = new QLabel(tr("Color"));
     colorCS = new ColorSelector;
     colorCS->setValue(QColor("black"));
@@ -622,21 +619,20 @@ AddPolyDialog::AddPolyDialog(QWidget *parent)
     mainLayout->addWidget(linethicknessLabel, 1, 0);
     mainLayout->addWidget(linethicknessSB, 1, 1);
     mainLayout->addWidget(filledCK, 2, 0, 1, 2);
-    mainLayout->addWidget(closedCK, 3, 0, 1, 2);
-    mainLayout->addWidget(colorLabel, 4, 0);
-    mainLayout->addWidget(colorCS, 4, 1);
+    mainLayout->addWidget(colorLabel, 3, 0);
+    mainLayout->addWidget(colorCS, 3, 1);
     QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal);
     addButton = new QPushButton(tr("Add"));
     addButton->setDefault(true);
     buttonBox->addButton(addButton,QDialogButtonBox::AcceptRole); 
     buttonBox->addButton(QDialogButtonBox::Cancel);
-    mainLayout->addWidget(buttonBox, 5, 0, 1, 2);
+    mainLayout->addWidget(buttonBox, 4, 0, 1, 2);
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(acceptCheck()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
     setLayout(mainLayout);
 }
 
-bool AddPolyDialog::draw(QPolygonF &points, double &linethickness, bool &filled, bool &closed, QColor &color, bool editing, QString title, QString button)
+bool AddPolyDialog::draw(QPolygonF &points, double &linethickness, bool &filled, QColor &color, bool editing, QString title, QString button)
 {
     if (editing) {
         while (pointsLW->count() > 0) {
@@ -653,7 +649,6 @@ bool AddPolyDialog::draw(QPolygonF &points, double &linethickness, bool &filled,
         }
         linethicknessSB->setValue(linethickness);
         filledCK->setChecked(filled);
-        closedCK->setChecked(closed);
         colorCS->setValue(color);
     }
     setTitle(title);
@@ -666,7 +661,6 @@ bool AddPolyDialog::draw(QPolygonF &points, double &linethickness, bool &filled,
         }
         linethickness = linethicknessSB->value();
         filled = filledCK->isChecked();
-        closed = closedCK->isChecked();
         color  = colorCS->value();
         return true;
     } else {
@@ -740,9 +734,9 @@ AddTextDialog::AddTextDialog(QWidget *parent)
     fontLabel->setBuddy(fontCB);
     
     QLabel *sizeLabel = new QLabel(tr("Size"));
-    sizeSB    = new QDoubleSpinBox;
-    sizeSB->setRange(0.0,1000.0);
-    sizeSB->setSingleStep(0.1);
+    sizeSB    = new QSpinBox;
+    sizeSB->setRange(0,100);
+    sizeSB->setSingleStep(1);
     sizeLabel->setBuddy(sizeSB);
     
     QLabel *colorLabel    = new QLabel(tr("Color"));
@@ -774,7 +768,7 @@ AddTextDialog::AddTextDialog(QWidget *parent)
     setLayout(mainLayout);
 }
 
-bool AddTextDialog::draw(double &xpos, double &ypos, QString &text, QString &font, double &size, QColor &color, bool editing, QString title, QString button)
+bool AddTextDialog::draw(double &xpos, double &ypos, QString &text, QString &font, int &size, QColor &color, bool editing, QString title, QString button)
 {
     if (editing) {
         xposSB->setValue(xpos);

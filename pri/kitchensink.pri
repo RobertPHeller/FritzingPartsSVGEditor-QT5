@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Wed May 15 21:46:00 2019
-#  Last Modified : <190516.1517>
+#  Last Modified : <190521.1601>
 #
 #  Description	
 #
@@ -44,8 +44,14 @@
 
 
 HEADERS += \
-    
+    src/feapplication.h \
+    src/installedfonts.h \
+            
+
 SOURCES += \
     src/main.cpp \
+    src/feapplication.cpp \
+    
+
 
     

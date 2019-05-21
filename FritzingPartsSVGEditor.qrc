@@ -32,5 +32,10 @@
         <file>resources/images/small_setsize.png</file>
         <file>resources/images/small_shrinkwrap.png</file>
         <file>resources/images/unknown.png</file>
+        <file>resources/fonts/DroidSans.ttf</file>
+        <file>resources/fonts/DroidSansMono.ttf</file>
+        <file>resources/fonts/DroidSans-Bold.ttf</file>
+        <file>resources/fonts/NOTICE</file>
+        <file>resources/fonts/OCRA.ttf</file>
     </qresource>
 </RCC>

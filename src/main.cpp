@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 07:56:55 2019
-//  Last Modified : <190520.1653>
+//  Last Modified : <190521.1545>
 //
 //  Description	
 //
@@ -50,18 +50,18 @@ static const char rcsid[] = "@(#) : $Id$";
 #include "support/debug.h"
 QDebug stdError = qDebug(); //(new StdError(NULL));
 #include "mainwindow/mainwindow.h"
+#include "feapplication.h"
 
 int main(int argc, char *argv[])
 {
     Q_INIT_RESOURCE(FritzingPartsSVGEditor);
-    QApplication app(argc, argv);
-    app.setOrganizationName("DeepSoft");
-    app.setApplicationName("FritzingPartsSVGEditor");
+    FEApplication app(argc, argv);
     QStringList args = app.arguments();
     QString file("");
     if (args.size() > 1) {
         file = args.at(1);
     }
+    
     MainWindow mainWin(file);
     mainWin.show();
     return app.exec();

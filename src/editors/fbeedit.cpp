@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190521.1346>
+//  Last Modified : <190521.1633>
 //
 //  Description	
 //
@@ -46,9 +46,11 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QRectF>
 #include <QColor>
 #include <QDebug>
+
 #include "../support/debug.h"
 #include "fbedialogs.h"
 #include "fbeedit.h"
+#include "../installedfonts.h"
 
 FEBreadboardEditor::FEBreadboardEditor(SizeAndVP::UnitsType units,double width,double height,const QRectF &viewport,QWidget *parent)
       : FEEdit(units,width,height,viewport,parent)
@@ -505,9 +507,21 @@ void FEBreadboardEditor::addPoly()
 {
     QPolygonF points;
     double linethickness;
-    bool filled, closed;
+    bool filled;
     QColor color;
-    if (addPolyDialog->draw(points, linethickness, filled, closed, color, false, tr("Add Polygon"), tr("Add"))) {
+    if (addPolyDialog->draw(points, linethickness, filled, color, false, tr("Add Polygon"), tr("Add"))) {
+        gid++;
+        QGraphicsItem *item;
+        if (filled) {
+            item = canvas->addPolygon(points,QPen(Qt::NoPen),QBrush(color));
+        } else {
+            item = canvas->addPolygon(points,QPen(QBrush(color),linethickness),QBrush(Qt::NoBrush));
+        }
+        item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Poly));
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Breadboard));
     }
 }
 
@@ -515,27 +529,115 @@ void FEBreadboardEditor::editPoly(int gid)
 {
     QPolygonF points;
     double linethickness;
-    bool filled, closed;
+    bool filled;
     QColor color;
-    if (addPolyDialog->draw(points, linethickness, filled, closed, color, true, tr("Edit Polygon"), tr("Edit"))) {
+    
+    ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,QVariant(gid)); 
+    if (items.size() == 0) {
+        stdError << "FEBreadboardEditor::editRect(): no items matching GID: " << gid << '\n';
+        return;
+    }
+    if (items.size() > 1) {
+        stdError << "FEBreadboardEditor::editRect(): multiple items matching GID: " << gid << '\n';
+        return;
+    }
+    QGraphicsItem *item = items[0];
+    if ((FEGraphicsScene::ItemType)(item->data((int)FEGraphicsScene::Type).toInt()) != FEGraphicsScene::Poly) {
+        stdError << "FEBreadboardEditor::editPoly(): item is not a Poly: " << gid << '\n';
+        return;
+    }
+    QGraphicsPolygonItem *eitem = (QGraphicsPolygonItem *) item;
+    points = eitem->polygon();
+    QPen pen = eitem->pen();
+    QBrush brush = eitem->brush();
+    if (brush.style() != Qt::NoBrush) {
+        filled = true;
+        color  = brush.color();
+    } else {
+        filled = false;
+        color  = pen.color();
+        linethickness = pen.widthF();
+    }
+    if (addPolyDialog->draw(points, linethickness, filled, color, true, tr("Edit Polygon"), tr("Edit"))) {
+        canvas->removeItem(eitem);
+        delete eitem;
+        gid++;
+        QGraphicsItem *item;
+        if (filled) {
+            item = canvas->addPolygon(points,QPen(Qt::NoPen),QBrush(color));
+        } else {
+            item = canvas->addPolygon(points,QPen(QBrush(color),linethickness),QBrush(Qt::NoBrush));
+        }
+        item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Poly));
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Breadboard));
     }
 }
 
 void FEBreadboardEditor::addText()
 {
-    double xpos = 0, ypos = 0, size = 0;;
+    double xpos = 0, ypos = 0;
+    int size = 0;;
     QString text(""), font("DroidSans");
     QColor color("black");
+    
     if (addTextDialog->draw(xpos, ypos, text, font, size, color, false, tr("Add Text"), tr("Add"))) {
+        gid++;
+        QGraphicsSimpleTextItem *titem = canvas->addSimpleText(text,QFont(font,size));
+        titem->setBrush(color);
+        titem->setPos(xpos,ypos);
+        titem->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+        titem->setData((int)FEGraphicsScene::Type,
+                       QVariant((int)FEGraphicsScene::Text));
+        titem->setData((int)FEGraphicsScene::Group1,
+                       QVariant((int)FEGraphicsScene::Breadboard));
     }
 }
 
 void FEBreadboardEditor::editText(int gid)
 {
-    double xpos = 0, ypos = 0, size = 0;
+    double xpos = 0, ypos = 0;
+    int size = 0;
     QString text(""), font("DroidSans");
     QColor color("black");
+    
+    ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,QVariant(gid)); 
+    if (items.size() == 0) {
+        stdError << "FEBreadboardEditor::editRect(): no items matching GID: " << gid << '\n';
+        return;
+    }
+    if (items.size() > 1) {
+        stdError << "FEBreadboardEditor::editRect(): multiple items matching GID: " << gid << '\n';
+        return;
+    }
+    QGraphicsItem *item = items[0];
+    if ((FEGraphicsScene::ItemType)(item->data((int)FEGraphicsScene::Type).toInt()) != FEGraphicsScene::Text) {
+        stdError << "FEBreadboardEditor::editText(): item is not a Text: " << gid << '\n';
+        return;
+    }
+    QGraphicsSimpleTextItem *titem = (QGraphicsSimpleTextItem *) item;
+    color = titem->brush().color();
+    QPointF pos = titem->pos();
+    xpos = pos.x(); 
+    ypos = pos.y();
+    text = titem->text();
+    QFont f = titem->font();
+    font = f.family();
+    size = f.pointSize();
     if (addTextDialog->draw(xpos, ypos, text, font, size, color, true, tr("Edit Text"), tr("Edit"))) {
+        canvas->removeItem(titem);
+        delete titem;
+        gid++;
+        QGraphicsSimpleTextItem *titem = canvas->addSimpleText(text,QFont(font,size));
+        titem->setBrush(color);
+        titem->setPos(xpos,ypos);
+        titem->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+        titem->setData((int)FEGraphicsScene::Type,
+                       QVariant((int)FEGraphicsScene::Text));
+        titem->setData((int)FEGraphicsScene::Group1,
+                       QVariant((int)FEGraphicsScene::Breadboard));
     }
 }
 
