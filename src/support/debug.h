@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon May 20 15:53:26 2019
-//  Last Modified : <190520.1651>
+//  Last Modified : <190521.1434>
 //
 //  Description	
 //
@@ -64,7 +64,7 @@ public:
         open(QIODevice::WriteOnly);
         return maxSize;
     }
-    qint64 readData(char *data, qint64 maxSize) {return 0;}
+    qint64 readData(char *, qint64 ) {return 0;}
 };
 
 extern QDebug stdError;
