@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190521.1311>
+//  Last Modified : <190521.2251>
 //
 //  Description	
 //
@@ -91,8 +91,8 @@ public:
 #include <QList>
 
 typedef QList<QGraphicsItem *> ItemList;
-typedef ItemList::const_iterator items_constInterator;
-typedef ItemList::iterator items_Interator;
+typedef ItemList::const_iterator items_constIterator;
+typedef ItemList::iterator items_Iterator;
 
 #include <QGraphicsScene>
 
@@ -114,7 +114,7 @@ public:
     }
 public:
     enum TagType {Gid=1, Pinno, Type, Group1, Group2, Group3, Group4, Group5,
-              Orientation, Length, Inverted, ArcXPos, ArcYPos, ArcDiameter, 
+              Orientation, Length, ArcXPos, ArcYPos, ArcDiameter, 
               ArcCenter, ArcStart, ArcExtent};
     enum GroupIdType {Breadboard=1, Schematic, Silkscreen, Copper0, Copper1,
               PinConnections, PinLabels, PinNumbers, Pins};
@@ -124,7 +124,7 @@ public:
         int key = (int)tag;
         ItemList allitems = items();
         ItemList result;
-        for (items_constInterator i = allitems.begin(); i != allitems.end(); i++) {
+        for (items_constIterator i = allitems.begin(); i != allitems.end(); i++) {
             QGraphicsItem *item = *i;
             QVariant v = item->data(key);
             if (v == value) {result.push_back(item);}
@@ -136,7 +136,7 @@ public:
         int key = (int)tag;
         ItemList allitems = items();
         ItemList result;
-        for (items_constInterator i = allitems.begin(); i != allitems.end(); i++) {
+        for (items_constIterator i = allitems.begin(); i != allitems.end(); i++) {
             QGraphicsItem *item = *i;
             QVariant v = item->data(key);
             if (v != value) {result.push_back(item);}

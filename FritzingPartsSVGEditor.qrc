@@ -37,5 +37,13 @@
         <file>resources/fonts/DroidSans-Bold.ttf</file>
         <file>resources/fonts/NOTICE</file>
         <file>resources/fonts/OCRA.ttf</file>
+        <file>resources/images/bottom_inverted.png</file>
+        <file>resources/images/bottom_normal.png</file>
+        <file>resources/images/left_inverted.png</file>
+        <file>resources/images/left_normal.png</file>
+        <file>resources/images/right_inverted.png</file>
+        <file>resources/images/right_normal.png</file>
+        <file>resources/images/top_inverted.png</file>
+        <file>resources/images/top_normal.png</file>
     </qresource>
 </RCC>

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190521.1100>
+//  Last Modified : <190521.2257>
 //
 //  Description	
 //
@@ -257,7 +257,7 @@ void FEEdit::mousePressed(QMouseEvent * event)
     QString label;
     int gid;
     stdError << "FEEdit::mousePressed()" << '\n';
-    for (items_constInterator ii = nearbyItems.begin();
+    for (items_constIterator ii = nearbyItems.begin();
          ii != nearbyItems.end();
          ii++) {
         QGraphicsItem *item = *ii;
@@ -273,6 +273,7 @@ void FEEdit::mousePressed(QMouseEvent * event)
         switch (itemtype) {
         case FEGraphicsScene::Pin: {
             int pinno = item->data((int)FEGraphicsScene::Pinno).toInt();
+            if (pinno == 0) continue;
             label = QString("Pin %1").arg(pinno);
             if (canvascontextmenu->findAction(label) != NULL) {continue;}
             break;
@@ -343,7 +344,7 @@ void FEEdit::editItem(int gid)
     stdError << "FEEdit::editItem(" << gid << ")" << '\n';
     ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,
                                        QVariant(gid));
-    for (items_constInterator i = items.begin(); i != items.end(); i++)
+    for (items_constIterator i = items.begin(); i != items.end(); i++)
     {
         QGraphicsItem *item = *i;
         FEGraphicsScene::ItemType itemtype = (FEGraphicsScene::ItemType)

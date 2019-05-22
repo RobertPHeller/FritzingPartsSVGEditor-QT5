@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:48:23 2019
-//  Last Modified : <190517.2229>
+//  Last Modified : <190521.2132>
 //
 //  Description	
 //
@@ -45,6 +45,8 @@
 
 #include <QRectF>
 #include "feedit.h"
+#include "fsedialogs.h"
+#include "fbedialogs.h"
 
 class FESchematicEditor : public FEEdit {
 public:
@@ -68,6 +70,18 @@ protected slots:
     virtual void editPoly(int gid);
     virtual void addText();
     virtual void editText(int gid);
+private:
+    void _addPin_helper(double xpos, double ypos, 
+                        Schematic::PinOrientationAndInversion::PinOrient orientation,
+                        double length, double linethickness, int pinno, 
+                        QString pinname, QString font, int size, QColor color);
+    Schematic::AddPinDialog *addPinDialog;
+    Breadboard::AddRectDialog *addRectDialog;
+    Breadboard::AddLineDialog *addLineDialog;
+    Breadboard::AddCircDialog *addCircDialog;
+    Breadboard::AddArcDialog *addArcDialog;
+    Breadboard::AddPolyDialog *addPolyDialog;
+    Breadboard::AddTextDialog *addTextDialog;
 };
 
 

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu May 16 16:20:41 2019
-#  Last Modified : <190518.2349>
+#  Last Modified : <190521.1714>
 #
 #  Description	
 #
@@ -48,6 +48,7 @@ HEADERS += \
 	src/editors/fbeedit.h \
 	src/editors/fbedialogs.h \
 	src/editors/fseedit.h \
+	src/editors/fsedialogs.h \
 	src/editors/fpeedit.h \
 	
 SOURCES += \
@@ -55,6 +56,7 @@ SOURCES += \
 	src/editors/fbeedit.cpp \
 	src/editors/fbedialogs.cpp \
 	src/editors/fseedit.cpp \
+	src/editors/fsedialogs.cpp \
 	src/editors/fpeedit.cpp \
 	
 
