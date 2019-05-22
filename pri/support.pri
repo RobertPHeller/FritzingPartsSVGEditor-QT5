@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sat May 18 23:53:52 2019
-#  Last Modified : <190520.1556>
+#  Last Modified : <190522.1149>
 #
 #  Description	
 #
@@ -50,8 +50,12 @@ HEADERS += \
 	src/support/questhead.xpm \
 	src/support/info.xpm \
 	src/support/warning.xpm \
-	src/support/debug.h
+	src/support/debug.h \
+	src/support/commonDialogs.h \
+	
 
 SOURCES += \
 	src/support/ColorSelector.cpp \
-	src/support/TitledDialog.cpp
+	src/support/TitledDialog.cpp \
+	src/support/commonDialogs.cpp \
+

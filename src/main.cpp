@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 07:56:55 2019
-//  Last Modified : <190521.1545>
+//  Last Modified : <190522.1326>
 //
 //  Description	
 //
@@ -51,6 +51,7 @@ static const char rcsid[] = "@(#) : $Id$";
 QDebug stdError = qDebug(); //(new StdError(NULL));
 #include "mainwindow/mainwindow.h"
 #include "feapplication.h"
+#include "support/commonDialogs.h"
 
 int main(int argc, char *argv[])
 {
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
     if (args.size() > 1) {
         file = args.at(1);
     }
-    
+    CommonDialog::InitCommonDialogs();
     MainWindow mainWin(file);
     mainWin.show();
     return app.exec();

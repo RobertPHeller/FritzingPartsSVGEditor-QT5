@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190522.0851>
+//  Last Modified : <190522.1336>
 //
 //  Description	
 //
@@ -56,10 +56,6 @@ class QLineEdit;
 class QLabel;
 class QToolBar;
 class QGraphicsRectItem;
-
-          
-          
-
 
 class FEContextMenu : public QMenu 
 {
@@ -200,7 +196,7 @@ struct FEContextMenuData {
     FEContextMenuData(int g, int X, int Y)
                 : gid(g), rootX(X), rootY(Y) 
     {
-        stdError << "FEContextMenuData: " << gid << "," << rootX << "," << rootY << '\n';
+        //stdError << "FEContextMenuData: " << gid << "," << rootX << "," << rootY << '\n';
     }
 };
 Q_DECLARE_METATYPE(FEContextMenuData);
@@ -272,7 +268,10 @@ public:
            QWidget *parent = 0);
     virtual ~FEEdit();
     typedef enum {pin, rect, line, circle, arc, poly, text} ItemTypes;
-    
+    inline bool isDirty () const {return isdirty;}
+    void clean();
+    virtual void loadFile(const QString &filename) = 0;
+    virtual void saveFile(const QString &filename) = 0;
 protected:
     inline const QBrush backgroundBrush() const {
         return canvasView->backgroundBrush();
@@ -352,12 +351,25 @@ protected:
     ItemTypes itemContext_itemtype;
     
     inline void setDirty () {
-        isdirty = true;
+        //stdError << "FEEdit::setDirty(): this is " << this << "\n";
+        //stdError << "FEEdit::setDirty(): inVPRect = " << inVPRect << "\n";
+        //stdError << "FEEdit::setDirty(): isdirty = " << isdirty << "\n";
+        if (inVPRect) {
+            inVPRect = false;
+            return;
+        } else {
+            isdirty = true;
+            emit dirtyFlagChanged(isdirty);
+        }
     }
     inline void setClean () {
+        //stdError << "FEEdit::setClean(): this is " << this << "\n";
+        //stdError << "FEEdit::setClean(): inVPRect = " << inVPRect << "\n";
+        //stdError << "FEEdit::setClean(): isdirty = " << isdirty << "\n";
         isdirty = false;
+        //inVPRect = false;
+        emit dirtyFlagChanged(isdirty);
     }
-    inline bool isDirty () const {return isdirty;}
     FEGraphicsScene *canvas;
 protected slots:
     virtual void addPin() = 0;
@@ -374,7 +386,6 @@ protected slots:
     virtual void editPoly(int gid) = 0;
     virtual void addText() = 0;
     virtual void editText(int gid) = 0;
-    
 private slots:
     void setZoom_16()    {setZoom(16.0);}
     void setZoom_8()     {setZoom(8.0);}
@@ -391,7 +402,7 @@ private slots:
     //void editItems();
     //void deleteItems();
     void itemContext(int gid, const QString &label, int X, int Y);
-    void deleteItem (int gid,  QString label = "");
+    void deleteItem (int gid, const QString &label = QString());
     void editItem(int gid);
     void setsize();
     void shrinkwrap();
@@ -399,7 +410,9 @@ private slots:
     void mousePressed(QMouseEvent * event);
     void keyPressed(QKeyEvent * event);
     void resized(QResizeEvent * event);
+    void makeDirty(const QList<QRectF> &) {setDirty();}
 private:
+    bool inVPRect;
     QToolBar *toolbuttons;
     FEGraphicsView  *canvasView;
     QAction *addPinAct;
@@ -446,6 +459,8 @@ private:
     void createContextMenus();
     void updateSR();
     void makeVpRect();
+signals:
+    void dirtyFlagChanged(bool dirty);
 };
 
 

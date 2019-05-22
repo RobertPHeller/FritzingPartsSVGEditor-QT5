@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190521.2257>
+//  Last Modified : <190522.1335>
 //
 //  Description	
 //
@@ -62,7 +62,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QVariant>
 
 #include "feedit.h"
-
+#include "../support/commonDialogs.h"
 
 
 ToolMenuButton::ToolMenuButton(QWidget *parent) : QToolButton(parent)
@@ -83,7 +83,6 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
 {
     gid = 0;
     pinno = 0;
-    isdirty = false;
     _zoomScale = 1.0;
     _vpscale   = 1.0;
     canvas = new FEGraphicsScene;
@@ -106,6 +105,8 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
     sizeAndVP->updateZoom(_zoomScale);
     _vpRect = NULL;
     makeVpRect();
+    setClean();
+    connect(canvas,SIGNAL(changed(const QList<QRectF> &)),this,SLOT(makeDirty(const QList<QRectF> &)));
 }
 
 FEEdit::~FEEdit()
@@ -205,26 +206,31 @@ void FEEdit::createZoomMenu()
     connect(setZoom__0625Act, SIGNAL(triggered()), this, SLOT(setZoom__0625()));
 }
 
-void FEEdit::deleteItem (int gid,  QString label)
+void FEEdit::deleteItem (int gid, const QString & label)
 {
-    
+    if (!label.isEmpty()) {
+        if (CommonDialog::YesNoDialog->draw(QString(tr("Really delete %1?")).arg(label)) == 
+            CommonDialog::NO) {return;}
+    }
+    ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,QVariant(gid));
+    for (items_Iterator ii = items.begin();
+         ii != items.end();
+         ii++) {
+        QGraphicsItem *item = *ii;
+        canvas->removeItem(item);
+        delete item;
+    }
 }
-
-//void FEEdit::canvasContextMenu()
-//{
-//}
-
-//void FEEdit::editItems()
-//{
-//}
-//
-//void FEEdit::deleteItems()
-//{
-//}
 
 void FEEdit::setsize()
 {
 }
+
+void FEEdit::shrinkwrap()
+{
+}
+
+
 
 void FEEdit::mouseMoved(QMouseEvent * event)
 {
@@ -242,7 +248,6 @@ void FEEdit::mousePressed(QMouseEvent * event)
 {
     Qt::MouseButton b = event->button();
     if (b != Qt::RightButton) return;
-    // Context menu...
     int x = event->x();
     int y = event->y();
     QPointF canvasCoords = canvasView->mapToScene(x,y);
@@ -256,14 +261,14 @@ void FEEdit::mousePressed(QMouseEvent * event)
     FEICAction *act = NULL;
     QString label;
     int gid;
-    stdError << "FEEdit::mousePressed()" << '\n';
+    //stdError << "FEEdit::mousePressed()" << '\n';
     for (items_constIterator ii = nearbyItems.begin();
          ii != nearbyItems.end();
          ii++) {
         QGraphicsItem *item = *ii;
-        stdError << "FEEdit::mousePressed(): item is " << item << '\n';
+        //stdError << "FEEdit::mousePressed(): item is " << item << '\n';
         int newgid = item->data((int)FEGraphicsScene::Gid).toInt();
-        stdError << "FEEdit::mousePressed(): gid = " << gid << '\n';
+        //stdError << "FEEdit::mousePressed(): gid = " << gid << '\n';
         FEGraphicsScene::ItemType itemtype = (FEGraphicsScene::ItemType)
               item->data((int)FEGraphicsScene::Type).toInt();
         if (newgid < 1 || itemtype == FEGraphicsScene::Undefined) {
@@ -323,7 +328,7 @@ void FEEdit::mousePressed(QMouseEvent * event)
 
 void FEEdit::itemContext(int gid, const QString &label, int X, int Y)
 {
-    stdError << "FEEdit::itemContext(" << gid << "," << label << "," << X << "," << Y << ")" << '\n';
+    //stdError << "FEEdit::itemContext(" << gid << "," << label << "," << X << "," << Y << ")" << '\n';
     itemcontextmenu->setTitle(label);
     itemcontextmenu->clear();
     FEICAction *a = new FEICAction(gid, X, Y, QString(tr("Edit %1")).arg(label), itemcontextmenu);
@@ -341,7 +346,7 @@ void FEEdit::itemContext(int gid, const QString &label, int X, int Y)
 
 void FEEdit::editItem(int gid)
 {
-    stdError << "FEEdit::editItem(" << gid << ")" << '\n';
+    //stdError << "FEEdit::editItem(" << gid << ")" << '\n';
     ItemList items = canvas->withtagEQ(FEGraphicsScene::Gid,
                                        QVariant(gid));
     for (items_constIterator i = items.begin(); i != items.end(); i++)
@@ -389,28 +394,29 @@ void FEEdit::resized(QResizeEvent * event)
 
 void FEEdit::makeVpRect()
 {
-    stdError << "*** FEEdit::makeVpRect()" << '\n';
+    //stdError << "*** FEEdit::makeVpRect()" << '\n';
+    inVPRect = true;
     QRectF vp;
     sizeAndVP->Viewport(vp);
     double vpwidth = vp.width();
     double vpheight = vp.height();
-    stdError << "*** FEEdit::makeVpRect() vp is " << vp << '\n';
+    //stdError << "*** FEEdit::makeVpRect() vp is " << vp << '\n';
     double width = sizeAndVP->Width();
     double height = sizeAndVP->Height();
-    stdError << "*** FEEdit::makeVpRect() width is " << width << ", height is " << height << '\n'; 
+    //stdError << "*** FEEdit::makeVpRect() width is " << width << ", height is " << height << '\n'; 
     double inv = 1.0/_zoomScale;
     canvasView->scale(inv,inv);
     QSize canvasSize = canvasView->size();
     int ch = canvasSize.height();
     int cw = canvasSize.width();
-    stdError << "*** FEEdit::makeVpRect() ch is " << ch << ", cw is " << cw << '\n';
+    //stdError << "*** FEEdit::makeVpRect() ch is " << ch << ", cw is " << cw << '\n';
     double newvpscale;
     if (ch <cw) {
         newvpscale = ((double)ch)/vpheight;
     } else {
         newvpscale = ((double)cw)/vpwidth;
     }
-    stdError << "*** FEEdit::makeVpRect() newvpscale is " << newvpscale << '\n';
+    //stdError << "*** FEEdit::makeVpRect() newvpscale is " << newvpscale << '\n';
     if (_vpRect != NULL) {
         canvas->removeItem(_vpRect);
         delete _vpRect;
@@ -438,7 +444,7 @@ void FEEdit::makeVpRect()
         sry1 = 0;
         sry2 = vpheight;
     }
-    stdError << "*** FEEdit::makeVpRect() new SR is " << srx1 << " " << sry1 << " " << srx2 << " " << sry2 << '\n';
+    //stdError << "*** FEEdit::makeVpRect() new SR is " << srx1 << " " << sry1 << " " << srx2 << " " << sry2 << '\n';
     canvasView->setSceneRect(srx1,sry1,srx2,sry2);
     canvasView->scale(_zoomScale,_zoomScale);
     updateSR();
@@ -482,10 +488,6 @@ void FEEdit::updateSR()
     if (newSR) {
         canvas->setSceneRect(curSR);
     }
-}
-
-void FEEdit::shrinkwrap()
-{
 }
 
 SizeAndVP::SizeAndVP(UnitsType units, double width, double height,            

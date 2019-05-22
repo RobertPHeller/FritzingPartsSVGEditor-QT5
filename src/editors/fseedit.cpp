@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:41 2019
-//  Last Modified : <190521.2305>
+//  Last Modified : <190522.1229>
 //
 //  Description	
 //
@@ -804,4 +804,12 @@ void FESchematicEditor::editText(int gid)
 }
 
 
+
+void FESchematicEditor::loadFile(const QString &filename)
+{
+}
+
+void FESchematicEditor::saveFile(const QString &filename)
+{
+}
 

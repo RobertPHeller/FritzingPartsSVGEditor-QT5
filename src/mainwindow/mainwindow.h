@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 11:58:51 2019
-//  Last Modified : <190517.2226>
+//  Last Modified : <190522.1002>
 //
 //  Description	
 //
@@ -94,7 +94,7 @@ private slots:
     void help_PCBEditor() {help("PCB Editor");}
     
 
-    void documentWasModified();
+    void documentWasModified(bool dirty);
 private:
     SizeAndVP::UnitsType _units;
     double _width, _height;

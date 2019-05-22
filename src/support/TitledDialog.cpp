@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun May 19 08:21:59 2019
-//  Last Modified : <190519.1954>
+//  Last Modified : <190522.1203>
 //
 //  Description	
 //
@@ -56,7 +56,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include "info.xpm"
 #include "questhead.xpm"
 
-TitledDialog::TitledDialog(TitledDialog::DialogType type, QWidget *parent)
+TitledDialog::TitledDialog(TitledDialog::IconType type, QWidget *parent)
       : QDialog(parent)
 {
     switch (type) {
@@ -67,20 +67,20 @@ TitledDialog::TitledDialog(TitledDialog::DialogType type, QWidget *parent)
     }
 }
 
-TitledDialog::TitledDialog(QPixmap userPixmap, QWidget *parent)
+TitledDialog::TitledDialog(const QPixmap &userPixmap, QWidget *parent)
       : QDialog(parent)
 {
     _createDialog(userPixmap);
 }
 
-TitledDialog::TitledDialog(QIcon userIcon, QWidget *parent)
+TitledDialog::TitledDialog(const QIcon &userIcon, QWidget *parent)
       : QDialog(parent)
 {
     _createDialog(userIcon.pixmap(32,32));
 }
 
 
-void TitledDialog::_createDialog(QPixmap pixmap)
+void TitledDialog::_createDialog(const QPixmap &pixmap)
 {
     QWidget *heading = new QWidget(this);
     body = new QWidget(this);

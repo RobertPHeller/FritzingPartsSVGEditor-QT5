@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:51:02 2019
-//  Last Modified : <190522.0915>
+//  Last Modified : <190522.1230>
 //
 //  Description	
 //
@@ -633,4 +633,12 @@ void FEPCBEditor::editText(int gid)
 }
 
 
+
+void FEPCBEditor::loadFile(const QString &filename)
+{
+}
+
+void FEPCBEditor::saveFile(const QString &filename)
+{
+}
 

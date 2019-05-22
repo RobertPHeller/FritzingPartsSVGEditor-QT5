@@ -7,8 +7,8 @@
 //  Date          : $Date$
 //  Author        : $Author$
 //  Created By    : Robert Heller
-//  Created       : Thu May 16 17:49:17 2019
-//  Last Modified : <190522.1221>
+//  Created       : Wed May 22 11:49:35 2019
+//  Last Modified : <190522.1332>
 //
 //  Description	
 //
@@ -40,48 +40,38 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __FPEEDIT_H
-#define __FPEEDIT_H
+#ifndef __COMMONDIALOGS_H
+#define __COMMONDIALOGS_H
 
-#include <QRectF>
+#include <QWidget>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QLabel>
 
-#include "feedit.h"
-#include "fpedialogs.h"
+#include "TitledDialog.h"
 
-class FEPCBEditor : public FEEdit {
+class CommonDialog : public TitledDialog
+{
+    Q_OBJECT
 public:
-    FEPCBEditor(SizeAndVP::UnitsType units = SizeAndVP::mm, 
-           double width=25.4, double height=25.4, 
-           const QRectF &viewport = QRectF(0,0,254,254),
-           QWidget *parent = 0);
-    virtual ~FEPCBEditor();
-    virtual void loadFile(const QString &filename);
-    virtual void saveFile(const QString &filename);
-protected slots:
-    virtual void addPin();
-    virtual void editPin(int gid);
-    virtual void addRect();
-    virtual void editRect(int gid);
-    virtual void addLine();
-    virtual void editLine(int gid);
-    virtual void addCirc();
-    virtual void editCirc(int gid);
-    virtual void addArc();
-    virtual void editArc(int gid);
-    virtual void addPoly();
-    virtual void editPoly(int gid);
-    virtual void addText();
-    virtual void editText(int gid);
+    enum DialogType {AbortRetryIgnore, Ok, OkCancel, RetryCancel, YesNo, YesNoCancel};
+    enum ResponseType {OK, YES, NO, ABORT, RETRY, IGNORE, CANCEL};
+    CommonDialog(const QString &message, DialogType dtype = Ok, TitledDialog::IconType itype = TitledDialog::Info, QWidget *parent = NULL);
+    CommonDialog(const QString &message, const QIcon & userIcon, DialogType dtype = Ok, QWidget *parent = NULL);
+    CommonDialog(const QString &message, const QPixmap & userPixmap, DialogType dtype = Ok, QWidget *parent = NULL);
+    inline void setMessage(const QString &message) {setTitle(message); }
+    inline const QString message() const {return title();}
+    ResponseType draw(const QString &message);
+    static CommonDialog *YesNoDialog;
+    static CommonDialog *OkDialog;
+    static void InitCommonDialogs();
 private:
-    PCB::AddPinDialog *addPinDialog;
-    PCB::AddRectDialog *addRectDialog;
-    PCB::AddLineDialog *addLineDialog;
-    PCB::AddCircDialog *addCircDialog;
-    PCB::AddArcDialog *addArcDialog;
-    PCB::AddPolyDialog *addPolyDialog;
-    PCB::AddTextDialog *addTextDialog;
+    void _createDialog(const QString &message, DialogType dtype);
+    QDialogButtonBox *buttons;
+private slots:
+    void handleClick(QAbstractButton *button);
 };
 
 
-#endif // __FPEEDIT_H
+#endif // __COMMONDIALOGS_H
 

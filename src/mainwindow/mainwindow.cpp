@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 12:20:12 2019
-//  Last Modified : <190517.2207>
+//  Last Modified : <190522.1110>
 //
 //  Description	
 //
@@ -49,6 +49,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include "../editors/fbeedit.h"
 #include "../editors/fseedit.h"
 #include "../editors/fpeedit.h"
+#include "../support/debug.h"
 
 MainWindow::MainWindow(const QString &fileName)
 {
@@ -64,14 +65,11 @@ MainWindow::MainWindow(const QString &fileName)
     readSettings();
     
     breadboardeditor = new FEBreadboardEditor(_units,_width,_height,_viewport);
-    notebook->addTab(breadboardeditor,"Breadboard View");
+    notebook->addTab(breadboardeditor,QIcon(":/resources/images/clean.png"),"Breadboard View");
     schematiceditor  = new FESchematicEditor(_units,_width,_height,_viewport);
-    notebook->addTab(schematiceditor,"Schematic View");
+    notebook->addTab(schematiceditor,QIcon(":/resources/images/clean.png"),"Schematic View");
     pcbeditor        = new FEPCBEditor(_units,_width,_height,_viewport);
-    notebook->addTab(pcbeditor,"PCB View");
-    
-    //connect(textEdit->document(), SIGNAL(contentsChanged()),
-    //        this, SLOT(documentWasModified()));
+    notebook->addTab(pcbeditor,QIcon(":/resources/images/clean.png"),"PCB View");
     
     if (!fileName.isEmpty()) {
         loadFile(fileName);
@@ -79,6 +77,9 @@ MainWindow::MainWindow(const QString &fileName)
         setCurrentFile("");
     }
     setUnifiedTitleAndToolBarOnMac(true);
+    connect(breadboardeditor,SIGNAL(dirtyFlagChanged(bool)),this,SLOT(documentWasModified(bool)));
+    connect(schematiceditor,SIGNAL(dirtyFlagChanged(bool)),this,SLOT(documentWasModified(bool)));
+    connect(pcbeditor,SIGNAL(dirtyFlagChanged(bool)),this,SLOT(documentWasModified(bool)));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -134,9 +135,31 @@ bool MainWindow::saveAs()
     return false;
 }
 
-void MainWindow::documentWasModified()
-{
-    //setWindowModified(textEdit->document()->isModified());
+void MainWindow::documentWasModified(bool dirty)
+{    
+    //stdError << "MainWindow::documentWasModified(" << dirty << ")\n";
+    int beIndex = notebook->indexOf(breadboardeditor),
+          seIndex = notebook->indexOf(schematiceditor),
+          peIndex = notebook->indexOf(pcbeditor);
+    
+    //stdError << "MainWindow::documentWasModified() breadboardeditor dirty flag is " << breadboardeditor->isDirty() << "\n";
+    //stdError << "MainWindow::documentWasModified() schematiceditor dirty flag is " << schematiceditor->isDirty() << "\n";
+    //stdError << "MainWindow::documentWasModified() pcbeditor dirty flag is " << pcbeditor->isDirty() << "\n";
+    if (breadboardeditor->isDirty()) {
+        notebook->setTabIcon(beIndex,QIcon(":/resources/images/dirty.png"));
+    } else {
+        notebook->setTabIcon(beIndex,QIcon(":/resources/images/clean.png"));
+    }
+    if (schematiceditor->isDirty()) {
+        notebook->setTabIcon(seIndex,QIcon(":/resources/images/dirty.png"));
+    } else {
+        notebook->setTabIcon(seIndex,QIcon(":/resources/images/clean.png"));
+    }
+    if (pcbeditor->isDirty()) {
+        notebook->setTabIcon(peIndex,QIcon(":/resources/images/dirty.png"));
+    } else {
+        notebook->setTabIcon(peIndex,QIcon(":/resources/images/clean.png"));
+    }
 }
 
 void MainWindow::createActions()

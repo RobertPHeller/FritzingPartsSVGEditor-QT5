@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190521.1633>
+//  Last Modified : <190522.1334>
 //
 //  Description	
 //
@@ -76,16 +76,16 @@ void FEBreadboardEditor::addPin()
     pinno++;
     if (addPinDialog->draw(xpos, ypos, diameter, color, pinno, false, tr("Add Pin"), tr("Add"))) {
         gid++;
-        stdError << "FEBreadboardEditor::addPin(): gid = " << gid << '\n';
-        stdError << "FEBreadboardEditor::addPin(): xpos = " << xpos << ", ypos = " << ypos << '\n';
-        stdError << "FEBreadboardEditor::addPin(): diameter = " << diameter << '\n';
+        //stdError << "FEBreadboardEditor::addPin(): gid = " << gid << '\n';
+        //stdError << "FEBreadboardEditor::addPin(): xpos = " << xpos << ", ypos = " << ypos << '\n';
+        //stdError << "FEBreadboardEditor::addPin(): diameter = " << diameter << '\n';
         double radius=diameter/2.0;
         qreal x = xpos-radius;
         qreal y = ypos-radius;
         qreal w = diameter;
         qreal h = diameter;
-        stdError << "FEBreadboardEditor::addPin(): x = " << x << ", y = " << y 
-              << ", w = " << w << ", h = " << h << '\n';
+        //stdError << "FEBreadboardEditor::addPin(): x = " << x << ", y = " << y 
+        //      << ", w = " << w << ", h = " << h << '\n';
         QGraphicsItem *item = canvas->addEllipse(x,y,w,h,QPen(Qt::NoPen),QBrush(color));
         item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
         item->setData((int)FEGraphicsScene::Pinno,QVariant(pinno));
@@ -640,4 +640,13 @@ void FEBreadboardEditor::editText(int gid)
                        QVariant((int)FEGraphicsScene::Breadboard));
     }
 }
+
+void FEBreadboardEditor::loadFile(const QString &filename)
+{
+}
+
+void FEBreadboardEditor::saveFile(const QString &filename)
+{
+}
+
 

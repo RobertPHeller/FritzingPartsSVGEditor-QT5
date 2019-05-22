@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:45:04 2019
-//  Last Modified : <190519.1845>
+//  Last Modified : <190522.1220>
 //
 //  Description	
 //
@@ -55,6 +55,8 @@ public:
            const QRectF &viewport = QRectF(0,0,254,254),
            QWidget *parent = 0);
     virtual ~FEBreadboardEditor();
+    virtual void loadFile(const QString &filename);
+    virtual void saveFile(const QString &filename);
 protected slots:
     virtual void addPin();
     virtual void editPin(int gid);
