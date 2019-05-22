@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Thu May 16 16:20:41 2019
-#  Last Modified : <190521.1714>
+#  Last Modified : <190522.0810>
 #
 #  Description	
 #
@@ -50,6 +50,7 @@ HEADERS += \
 	src/editors/fseedit.h \
 	src/editors/fsedialogs.h \
 	src/editors/fpeedit.h \
+	src/editors/fpedialogs.h \
 	
 SOURCES += \
 	src/editors/feedit.cpp \
@@ -58,5 +59,6 @@ SOURCES += \
 	src/editors/fseedit.cpp \
 	src/editors/fsedialogs.cpp \
 	src/editors/fpeedit.cpp \
+	src/editors/fpedialogs.cpp \
 	
 

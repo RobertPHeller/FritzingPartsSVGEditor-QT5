@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190521.2251>
+//  Last Modified : <190522.0851>
 //
 //  Description	
 //
@@ -274,6 +274,12 @@ public:
     typedef enum {pin, rect, line, circle, arc, poly, text} ItemTypes;
     
 protected:
+    inline const QBrush backgroundBrush() const {
+        return canvasView->backgroundBrush();
+    }
+    inline void setBackgroundBrush(const QBrush &brush) {
+        canvasView->setBackgroundBrush(brush);
+    }
     
     int gid; // GID to uniquely identify objects (including grouped objects)
     int pinno; // Pin numbers

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:17 2019
-//  Last Modified : <190517.2230>
+//  Last Modified : <190522.0840>
 //
 //  Description	
 //
@@ -46,6 +46,7 @@
 #include <QRectF>
 
 #include "feedit.h"
+#include "fpedialogs.h"
 
 class FEPCBEditor : public FEEdit {
 public:
@@ -69,7 +70,14 @@ protected slots:
     virtual void editPoly(int gid);
     virtual void addText();
     virtual void editText(int gid);
-    
+private:
+    PCB::AddPinDialog *addPinDialog;
+    PCB::AddRectDialog *addRectDialog;
+    PCB::AddLineDialog *addLineDialog;
+    PCB::AddCircDialog *addCircDialog;
+    PCB::AddArcDialog *addArcDialog;
+    PCB::AddPolyDialog *addPolyDialog;
+    PCB::AddTextDialog *addTextDialog;
 };
 
 
