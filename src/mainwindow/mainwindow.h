@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 11:58:51 2019
-//  Last Modified : <190522.1002>
+//  Last Modified : <190522.1621>
 //
 //  Description	
 //
@@ -112,12 +112,15 @@ private:
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
     
-    void help(const QString &helpIndexText) {}
+    void help(const QString &helpIndexText);
     
     QTabWidget *notebook; // Tab notebook
     FEBreadboardEditor *breadboardeditor; // Breadboard Editor tab
     FESchematicEditor *schematiceditor; // Schematic Editor tab
     FEPCBEditor *pcbeditor; // PCB Editor tab
+    
+    const QString getOpenPrefix (const QString& defaultdir = QString());
+    const QString getSavePrefix (const QString& defaultdir = QString());
     
     QString curFile;
     

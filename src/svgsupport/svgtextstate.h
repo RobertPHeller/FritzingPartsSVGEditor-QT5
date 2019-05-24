@@ -7,8 +7,8 @@
 //  Date          : $Date$
 //  Author        : $Author$
 //  Created By    : Robert Heller
-//  Created       : Wed May 22 11:49:35 2019
-//  Last Modified : <190522.1417>
+//  Created       : Fri May 24 08:03:03 2019
+//  Last Modified : <190524.0841>
 //
 //  Description	
 //
@@ -40,39 +40,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __COMMONDIALOGS_H
-#define __COMMONDIALOGS_H
+#ifndef __SVGTEXTSTATE_H
+#define __SVGTEXTSTATE_H
 
-#include <QWidget>
-#include <QDialog>
-#include <QDialogButtonBox>
-#include <QLabel>
+#include <QGraphicsSimpleTextItem>
+#include <QPaintEngineState>
+#include <QTextItem>
 
-#include "TitledDialog.h"
+class QBrush;
+class QFont;
 
-class CommonDialog : public TitledDialog
-{
-    Q_OBJECT
+class FESimpleTextItemPEState : public QPaintEngineState {
 public:
-    enum DialogType {AbortRetryIgnore, Ok, OkCancel, RetryCancel, YesNo, YesNoCancel};
-    enum ResponseType {OK, YES, NO, ABORT, RETRY, IGNORE, CANCEL};
-    CommonDialog(const QString &message, DialogType dtype = Ok, TitledDialog::IconType itype = TitledDialog::Info, QWidget *parent = NULL);
-    CommonDialog(const QString &message, const QIcon & userIcon, DialogType dtype = Ok, QWidget *parent = NULL);
-    CommonDialog(const QString &message, const QPixmap & userPixmap, DialogType dtype = Ok, QWidget *parent = NULL);
-    inline void setMessage(const QString &message) {setTitle(message); }
-    inline const QString message() const {return title();}
-    ResponseType draw(const QString &message);
-    static CommonDialog *YesNoDialog;
-    static CommonDialog *OkDialog;
-    static CommonDialog *YesNoCancelDialog;
-    static void InitCommonDialogs();
+    FESimpleTextItemPEState(const QBrush &brush, const QFont &font)
+          : _brush(brush), _font(font)
+    {
+    }
+    QFont font() const { return _font; }
+    QBrush brush() const { return _brush; }
+    QPaintEngine::DirtyFlags state() const {
+        return QPaintEngine::DirtyBrush|QPaintEngine::DirtyFont;
+    }
 private:
-    void _createDialog(const QString &message, DialogType dtype);
-    QDialogButtonBox *buttons;
-private slots:
-    void handleClick(QAbstractButton *button);
+    QBrush _brush;
+    QFont _font;
 };
 
-
-#endif // __COMMONDIALOGS_H
+class FETextItem : public QTextItem
+{
+public:
+    FETextItem(const QString &text) : _text(text) {}
+    QString text() const {return _text;}
+private:
+    QString _text;
+};
+        
+#endif // __SVGTEXTSTATE_H
 

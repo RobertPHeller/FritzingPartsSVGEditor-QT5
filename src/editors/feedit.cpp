@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190522.1335>
+//  Last Modified : <190522.1413>
 //
 //  Description	
 //
@@ -220,6 +220,14 @@ void FEEdit::deleteItem (int gid, const QString & label)
         canvas->removeItem(item);
         delete item;
     }
+}
+
+void FEEdit::clean()
+{
+    _vpRect = NULL;
+    canvas->clear();
+    makeVpRect();
+    setClean();
 }
 
 void FEEdit::setsize()

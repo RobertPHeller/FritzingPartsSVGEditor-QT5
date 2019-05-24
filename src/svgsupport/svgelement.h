@@ -7,8 +7,8 @@
 //  Date          : $Date$
 //  Author        : $Author$
 //  Created By    : Robert Heller
-//  Created       : Wed May 22 11:49:35 2019
-//  Last Modified : <190522.1417>
+//  Created       : Fri May 24 09:48:15 2019
+//  Last Modified : <190524.1106>
 //
 //  Description	
 //
@@ -40,39 +40,27 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __COMMONDIALOGS_H
-#define __COMMONDIALOGS_H
+#ifndef __SVGELEMENT_H
+#define __SVGELEMENT_H
 
 #include <QWidget>
-#include <QDialog>
-#include <QDialogButtonBox>
-#include <QLabel>
+#include <QDomDocument>
+#include <QDomElement>
 
-#include "TitledDialog.h"
+class QGraphicsItem;
+class QString;
 
-class CommonDialog : public TitledDialog
+class FESvgElement
 {
-    Q_OBJECT
-public:
-    enum DialogType {AbortRetryIgnore, Ok, OkCancel, RetryCancel, YesNo, YesNoCancel};
-    enum ResponseType {OK, YES, NO, ABORT, RETRY, IGNORE, CANCEL};
-    CommonDialog(const QString &message, DialogType dtype = Ok, TitledDialog::IconType itype = TitledDialog::Info, QWidget *parent = NULL);
-    CommonDialog(const QString &message, const QIcon & userIcon, DialogType dtype = Ok, QWidget *parent = NULL);
-    CommonDialog(const QString &message, const QPixmap & userPixmap, DialogType dtype = Ok, QWidget *parent = NULL);
-    inline void setMessage(const QString &message) {setTitle(message); }
-    inline const QString message() const {return title();}
-    ResponseType draw(const QString &message);
-    static CommonDialog *YesNoDialog;
-    static CommonDialog *OkDialog;
-    static CommonDialog *YesNoCancelDialog;
-    static void InitCommonDialogs();
+public: 
+    FESvgElement(const QGraphicsItem *item) : _item(item) {}
+    void setId(const QString &id) {_id = id;}
+    void appendElement(QDomElement parent);
 private:
-    void _createDialog(const QString &message, DialogType dtype);
-    QDialogButtonBox *buttons;
-private slots:
-    void handleClick(QAbstractButton *button);
+    QString _id;
+    const QGraphicsItem *_item;
 };
+          
 
-
-#endif // __COMMONDIALOGS_H
+#endif // __SVGELEMENT_H
 

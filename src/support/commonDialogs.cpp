@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Wed May 22 11:49:59 2019
-//  Last Modified : <190522.1331>
+//  Last Modified : <190522.1418>
 //
 //  Description	
 //
@@ -152,9 +152,11 @@ CommonDialog::ResponseType CommonDialog::draw(const QString &message)
 
 CommonDialog *CommonDialog::YesNoDialog = NULL;
 CommonDialog *CommonDialog::OkDialog = NULL;
+CommonDialog *CommonDialog::YesNoCancelDialog = NULL;
 
 void CommonDialog::InitCommonDialogs()
 {
     YesNoDialog = new CommonDialog(QString(), CommonDialog::YesNo, TitledDialog::Question);
     OkDialog = new CommonDialog(QString(), CommonDialog::Ok, TitledDialog::Question);
+    YesNoCancelDialog = new CommonDialog(QString(), CommonDialog::YesNoCancel, TitledDialog::Question);
 }

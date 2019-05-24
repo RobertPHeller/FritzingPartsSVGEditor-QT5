@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190522.1336>
+//  Last Modified : <190523.0901>
 //
 //  Description	
 //
@@ -273,6 +273,12 @@ public:
     virtual void loadFile(const QString &filename) = 0;
     virtual void saveFile(const QString &filename) = 0;
 protected:
+    inline SizeAndVP::UnitsType Units() const {return sizeAndVP->Units();}
+    inline void  Viewport(QRectF &vp) const {
+        sizeAndVP->Viewport(vp);
+    }
+    inline double Width() const {return sizeAndVP->Width();}
+    inline double Height() const {return sizeAndVP->Height();}
     inline const QBrush backgroundBrush() const {
         return canvasView->backgroundBrush();
     }

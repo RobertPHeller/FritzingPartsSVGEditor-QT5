@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:51:02 2019
-//  Last Modified : <190522.1230>
+//  Last Modified : <190524.1008>
 //
 //  Description	
 //
@@ -46,9 +46,13 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QRectF>
 #include <QColor>
 #include <QDebug>
+#include <QDomDocument>
+#include <QFile>
 
+#include "../support/debug.h"
 #include "fpeedit.h"
 #include "fpedialogs.h"
+#include "../svgsupport/svgelement.h"
 
 FEPCBEditor::FEPCBEditor(SizeAndVP::UnitsType units,double width,double height,const QRectF &viewport,QWidget *parent)
       : FEEdit(units,width,height,viewport,parent)
@@ -640,5 +644,67 @@ void FEPCBEditor::loadFile(const QString &filename)
 
 void FEPCBEditor::saveFile(const QString &filename)
 {
+    QDomDocumentType fbeSVGDocumentType;
+    QDomDocument fbeSVGDocument(fbeSVGDocumentType);
+    QDomElement svg = fbeSVGDocument.createElement("svg");
+    fbeSVGDocument.appendChild(svg);
+    svg.setAttribute("version","1.1");
+    svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    svg.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");
+    
+    SizeAndVP::UnitsType u = Units();
+    QString usuffix;
+    switch (u) {
+    case SizeAndVP::mm: usuffix = "mm"; break;
+    case SizeAndVP::in: usuffix = "in"; break;
+    }
+    svg.setAttribute("x","0.0"+usuffix);
+    svg.setAttribute("y","0.0"+usuffix);
+    svg.setAttribute("width",QString::number(Width())+usuffix);
+    svg.setAttribute("height",QString::number(Height())+usuffix);
+    QRectF vp;
+    Viewport(vp);
+    svg.setAttribute("viewBox",QString::number(vp.x())+" "+
+                     QString::number(vp.y())+" "+
+                     QString::number(vp.width())+" "+
+                     QString::number(vp.height()));
+    QDomElement silkscreenGroup = fbeSVGDocument.createElement("g");
+    svg.appendChild(silkscreenGroup);
+    silkscreenGroup.setAttribute("id","silkscreen");
+    
+    QDomElement copper0Group = fbeSVGDocument.createElement("g");
+    svg.appendChild(copper0Group);
+    copper0Group.setAttribute("id","copper0");
+    
+    QDomElement copper1Group = fbeSVGDocument.createElement("g");
+    copper0Group.appendChild(copper1Group);
+    copper1Group.setAttribute("id","copper1");
+    
+    ItemList silkscreenItems = canvas->withtagEQ(FEGraphicsScene::Group1,QVariant((int)FEGraphicsScene::Silkscreen));
+    for (items_Iterator ii = silkscreenItems.begin(); ii != silkscreenItems.end(); ii++) {
+        QGraphicsItem *item = *ii;
+        FESvgElement newElement(item);
+        newElement.appendElement(silkscreenGroup);
+    }
+    ItemList copper1Items = canvas->withtagEQ(FEGraphicsScene::Group2,QVariant((int)FEGraphicsScene::Copper1));
+    for (items_Iterator ii = copper1Items.begin(); ii != copper1Items.end(); ii++) {
+        QGraphicsItem *item = *ii;
+        FESvgElement newElement(item);
+        int pinno = item->data((int)FEGraphicsScene::Pinno).toInt();
+        if (pinno > 0) {
+            newElement.setId(QString("connector%1pin").arg(pinno));
+        } else {
+            newElement.setId("");
+        }
+        newElement.appendElement(copper1Group);
+    }
+    QFile outfile(filename);
+    outfile.open( QIODevice::WriteOnly );
+    QString XML = fbeSVGDocument.toString();
+    //stdError << "FEPCBEditor::saveFile(): " << XML << "\n";
+    outfile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" );
+    outfile.write( XML.toUtf8() );
+    outfile.close();
+    setClean();
 }
 

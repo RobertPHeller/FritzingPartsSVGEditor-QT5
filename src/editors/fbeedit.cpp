@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190522.1334>
+//  Last Modified : <190524.1005>
 //
 //  Description	
 //
@@ -46,11 +46,20 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QRectF>
 #include <QColor>
 #include <QDebug>
+#include <QStyleOptionGraphicsItem>
+#include <QDomDocument>
+#include <QFile>
+#include <QGraphicsTextItem>
+#include <QPaintEngine>
+#include <QPaintEngineState>
+#include <QTextItem>
+#include <QPointF>
 
 #include "../support/debug.h"
 #include "fbedialogs.h"
 #include "fbeedit.h"
 #include "../installedfonts.h"
+#include "../svgsupport/svgelement.h"
 
 FEBreadboardEditor::FEBreadboardEditor(SizeAndVP::UnitsType units,double width,double height,const QRectF &viewport,QWidget *parent)
       : FEEdit(units,width,height,viewport,parent)
@@ -647,6 +656,53 @@ void FEBreadboardEditor::loadFile(const QString &filename)
 
 void FEBreadboardEditor::saveFile(const QString &filename)
 {
+    QDomDocumentType fbeSVGDocumentType;
+    QDomDocument fbeSVGDocument(fbeSVGDocumentType);
+    QDomElement svg = fbeSVGDocument.createElement("svg");
+    fbeSVGDocument.appendChild(svg);
+    svg.setAttribute("version","1.1");
+    svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    svg.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");
+    
+    SizeAndVP::UnitsType u = Units();
+    QString usuffix;
+    switch (u) {
+    case SizeAndVP::mm: usuffix = "mm"; break;
+    case SizeAndVP::in: usuffix = "in"; break;
+    }
+    svg.setAttribute("x","0.0"+usuffix);
+    svg.setAttribute("y","0.0"+usuffix);
+    svg.setAttribute("width",QString::number(Width())+usuffix);
+    svg.setAttribute("height",QString::number(Height())+usuffix);
+    QRectF vp;
+    Viewport(vp);
+    svg.setAttribute("viewBox",QString::number(vp.x())+" "+
+                     QString::number(vp.y())+" "+
+                     QString::number(vp.width())+" "+
+                     QString::number(vp.height()));
+    QDomElement breadboardGroup = fbeSVGDocument.createElement("g");
+    svg.appendChild(breadboardGroup);
+    breadboardGroup.setAttribute("id","breadboard");
+    ItemList breadboardItems = canvas->withtagEQ(FEGraphicsScene::Group1,QVariant((int)FEGraphicsScene::Breadboard));
+    for (items_constIterator ii = breadboardItems.begin(); ii != breadboardItems.end(); ii++) {
+        const QGraphicsItem *item = *ii;
+        FESvgElement newElement(item);
+        int pinno = item->data((int)FEGraphicsScene::Pinno).toInt();
+        if (pinno > 0) {
+            newElement.setId(QString("connector%1pin").arg(pinno));
+        } else {
+            newElement.setId("");
+        }
+        newElement.appendElement(breadboardGroup);
+    }
+    QFile outfile(filename);
+    outfile.open( QIODevice::WriteOnly );
+    QString XML = fbeSVGDocument.toString();
+    //stdError << "FEBreadboardEditor::saveFile(): " << XML << "\n";
+    outfile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" );
+    outfile.write( XML.toUtf8() );
+    outfile.close();
+    setClean();
 }
 
 

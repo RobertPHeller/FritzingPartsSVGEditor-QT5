@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:41 2019
-//  Last Modified : <190522.1229>
+//  Last Modified : <190524.1007>
 //
 //  Description	
 //
@@ -46,11 +46,15 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QRectF>
 #include <QColor>
 #include <QDebug>
+#include <QStyleOptionGraphicsItem>
+#include <QDomDocument>
+#include <QFile>
 
 #include "../support/debug.h"
 #include "fseedit.h"
 #include "fsedialogs.h"
-#include "../installedfonts.h"                                                  
+#include "../installedfonts.h"
+#include "../svgsupport/svgelement.h"
 
 #include "../support/debug.h"
 
@@ -297,7 +301,7 @@ void FESchematicEditor::editPin(int gid)
             delete item;
         }
         if (editpinno > pinno)  pinno = editpinno;
-        _addPin_helper(xpos,ypos,orientation,length,linethickness,pinno,
+        _addPin_helper(xpos,ypos,orientation,length,linethickness,editpinno,
                        pinname,font,size,color);
     }
     
@@ -811,5 +815,80 @@ void FESchematicEditor::loadFile(const QString &filename)
 
 void FESchematicEditor::saveFile(const QString &filename)
 {
+    QDomDocumentType fbeSVGDocumentType;
+    QDomDocument fbeSVGDocument(fbeSVGDocumentType);
+    QDomElement svg = fbeSVGDocument.createElement("svg");
+    fbeSVGDocument.appendChild(svg);
+    svg.setAttribute("version","1.1");
+    svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    svg.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");
+    
+    SizeAndVP::UnitsType u = Units();
+    QString usuffix;
+    switch (u) {
+    case SizeAndVP::mm: usuffix = "mm"; break;
+    case SizeAndVP::in: usuffix = "in"; break;
+    }
+    svg.setAttribute("x","0.0"+usuffix);
+    svg.setAttribute("y","0.0"+usuffix);
+    svg.setAttribute("width",QString::number(Width())+usuffix);
+    svg.setAttribute("height",QString::number(Height())+usuffix);
+    QRectF vp;
+    Viewport(vp);
+    svg.setAttribute("viewBox",QString::number(vp.x())+" "+
+                     QString::number(vp.y())+" "+
+                     QString::number(vp.width())+" "+
+                     QString::number(vp.height()));
+    QDomElement schematicGroup = fbeSVGDocument.createElement("g");
+    svg.appendChild(schematicGroup);
+    schematicGroup.setAttribute("id","schematic");
+    
+    QDomElement pinsGroup = fbeSVGDocument.createElement("g");
+    schematicGroup.appendChild(pinsGroup);
+    pinsGroup.setAttribute("id","pins");
+    
+    QDomElement pinConnectionsGroup = fbeSVGDocument.createElement("g");
+    pinsGroup.appendChild(pinConnectionsGroup);
+    pinConnectionsGroup.setAttribute("id","pin_connections");
+    
+    QDomElement pinLabelsGroup = fbeSVGDocument.createElement("g");
+    pinsGroup.appendChild(pinLabelsGroup);
+    pinLabelsGroup.setAttribute("id","pin_labels");
+    
+    QDomElement pinNumbersGroup = fbeSVGDocument.createElement("g");
+    pinsGroup.appendChild(pinNumbersGroup);
+    pinNumbersGroup.setAttribute("id","pin_numbers");
+    
+    ItemList schematicItems = canvas->withtagEQ(FEGraphicsScene::Group1,QVariant((int)FEGraphicsScene::Schematic));
+    for (items_Iterator ii = schematicItems.begin(); ii != schematicItems.end(); ii++) {
+        QGraphicsItem *item = *ii;
+        FESvgElement newElement(item);
+        int pinno = item->data((int)FEGraphicsScene::Pinno).toInt();
+        if (pinno > 0) {
+            newElement.setId(QString("connector%1pin").arg(pinno));
+        } else {
+            newElement.setId("");
+        }
+        FEGraphicsScene::GroupIdType g2 = (FEGraphicsScene::GroupIdType)(item->data((int)FEGraphicsScene::Group2).toInt());
+        if (g2 == FEGraphicsScene::PinConnections) {
+            newElement.appendElement(pinConnectionsGroup);
+        } else if (g2 == FEGraphicsScene::PinLabels) {
+            newElement.appendElement(pinLabelsGroup);
+        } else if (g2 == FEGraphicsScene::PinNumbers) {
+            newElement.appendElement(pinNumbersGroup);
+        } else if (g2 == FEGraphicsScene::Pins) {
+            newElement.appendElement(pinsGroup);
+        } else {
+            newElement.appendElement(schematicGroup);
+        }
+    }
+    QFile outfile(filename);
+    outfile.open( QIODevice::WriteOnly );
+    QString XML = fbeSVGDocument.toString();
+    //stdError << "FESchematicEditor::saveFile(): " << XML << "\n";
+    outfile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" );
+    outfile.write( XML.toUtf8() );
+    outfile.close();
+    setClean();
 }
 

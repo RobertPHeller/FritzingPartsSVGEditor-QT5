@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 12:20:12 2019
-//  Last Modified : <190522.1110>
+//  Last Modified : <190522.1621>
 //
 //  Description	
 //
@@ -50,6 +50,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include "../editors/fseedit.h"
 #include "../editors/fpeedit.h"
 #include "../support/debug.h"
+#include "../support/commonDialogs.h"
 
 MainWindow::MainWindow(const QString &fileName)
 {
@@ -95,9 +96,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::newFile()
 {
     if (maybeSave()) {
-        //breadboardeditor->clean();
-        //schematiceditor->clean();
-        //pcbeditor->clean();
+        breadboardeditor->clean();
+        schematiceditor->clean();
+        pcbeditor->clean();
         setCurrentFile("");
     }
 }
@@ -105,9 +106,9 @@ void MainWindow::newFile()
 void MainWindow::open()
 {
     if (maybeSave()) {
-        //QString fileName = QFileDialog::getOpenFileName(this);
-        //if (!fileName.isEmpty())
-        //    loadFile(fileName);
+        QString fileName = getOpenPrefix(QFileInfo(curFile).dir().dirName()); 
+        if (!fileName.isEmpty())
+            loadFile(fileName);
     }
 }
 
@@ -122,20 +123,12 @@ bool MainWindow::save()
 
 bool MainWindow::saveAs()
 {
-    //QFileDialog dialog(this);
-    //dialog.setWindowModality(Qt::WindowModal);
-    //dialog.setAcceptMode(QFileDialog::AcceptSave);
-    //dialog.exec();
-    //QStringList files = dialog.selectedFiles();
-    
-    //if (files.isEmpty())
-    //    return false;
-    
-    //return saveFile(files.at(0));
-    return false;
+    QString fileName = getSavePrefix(QFileInfo(curFile).dir().dirName());
+    if (!fileName.isEmpty()) return saveFile(fileName);
+    else return false;
 }
 
-void MainWindow::documentWasModified(bool dirty)
+void MainWindow::documentWasModified(bool /* dirty */)
 {    
     //stdError << "MainWindow::documentWasModified(" << dirty << ")\n";
     int beIndex = notebook->indexOf(breadboardeditor),
@@ -330,17 +323,37 @@ void MainWindow::writeSettings()
 
 bool MainWindow::maybeSave()
 {
-    // check modified and save...
-    return true;
+    if (breadboardeditor->isDirty() ||
+        schematiceditor->isDirty() ||
+        pcbeditor->isDirty()) {
+        switch (CommonDialog::YesNoCancelDialog->draw(tr("There are unsaved changes, save before exit?"))) {
+        case CommonDialog::YES:
+            save();
+            return true;
+        case CommonDialog::NO: return true;
+        case CommonDialog::CANCEL: return false;
+        default: /* This is here to make the compiler happy. */ break;
+        } 
+    } else {
+        return true;
+    }
+    return false; // This is here to make the compiler happy. 
 }
 
 void MainWindow::loadFile(const QString &fileName)
 {
+    breadboardeditor->loadFile(fileName+"_Breadboard.svg");
+    schematiceditor->loadFile(fileName+"_Schematic.svg");
+    pcbeditor->loadFile(fileName+"_PCB.svg");
     setCurrentFile(fileName);
 }
 
 bool MainWindow::saveFile(const QString &fileName)
 {
+    if (breadboardeditor->isDirty()) breadboardeditor->saveFile(fileName+"_Breadboard.svg");
+    if (schematiceditor->isDirty()) schematiceditor->saveFile(fileName+"_Schematic.svg");
+    if (pcbeditor->isDirty()) pcbeditor->saveFile(fileName+"_PCB.svg");
+    
     return true;
 }
 
@@ -350,4 +363,32 @@ void MainWindow::setCurrentFile(const QString &fileName)
 }
 
 
+
+const QString MainWindow::getOpenPrefix (const QString& defaultdir)
+{
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"),
+                                                    defaultdir,
+                                                    tr("SVG files (*.svg);;All Files *"));
+    if (filename.isEmpty()) return filename;
+    filename = filename.replace(QRegularExpression("_Breadboard.svg$"),"");
+    filename = filename.replace(QRegularExpression("_Schematic.svg$"),"");
+    filename = filename.replace(QRegularExpression("_PCB.svg$"),"");
+    return filename;
+}
+
+const QString MainWindow::getSavePrefix (const QString& defaultdir)
+{
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
+                                                    defaultdir,
+                                                    tr("SVG files (*.svg);;All Files *"));
+    if (filename.isEmpty()) return filename;
+    filename = filename.replace(QRegularExpression("_Breadboard.svg$"),"");
+    filename = filename.replace(QRegularExpression("_Schematic.svg$"),"");
+    filename = filename.replace(QRegularExpression("_PCB.svg$"),"");
+    return filename;
+}
+
+void MainWindow::help(const QString &/*helpIndexText*/)
+{
+}
 
