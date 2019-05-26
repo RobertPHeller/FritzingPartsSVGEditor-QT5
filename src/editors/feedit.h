@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190524.2109>
+//  Last Modified : <190526.1025>
 //
 //  Description	
 //
@@ -56,6 +56,7 @@ class QLineEdit;
 class QLabel;
 class QToolBar;
 class QGraphicsRectItem;
+class SetSizeDialog;
 
 class FEContextMenu : public QMenu 
 {
@@ -423,6 +424,7 @@ private slots:
     void resized(QResizeEvent * event);
     void makeDirty(const QList<QRectF> &) {setDirty();}
 private:
+    SetSizeDialog *setsizedialog;
     bool inVPRect;
     QToolBar *toolbuttons;
     FEGraphicsView  *canvasView;

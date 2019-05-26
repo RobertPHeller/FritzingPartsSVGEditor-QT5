@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190524.2141>
+//  Last Modified : <190526.1031>
 //
 //  Description	
 //
@@ -65,7 +65,7 @@ static const char rcsid[] = "@(#) : $Id$";
 
 #include "feedit.h"
 #include "../support/commonDialogs.h"
-
+#include "setsizedialog.h"
 
 ToolMenuButton::ToolMenuButton(QWidget *parent) : QToolButton(parent)
 {
@@ -104,6 +104,7 @@ FEEdit::FEEdit(SizeAndVP::UnitsType units, double width,
     setLayout(layout);
     createToolButtons();
     createContextMenus();
+    setsizedialog = new SetSizeDialog;
     sizeAndVP->updateZoom(_zoomScale);
     _vpRect = NULL;
     makeVpRect();
@@ -234,6 +235,13 @@ void FEEdit::clean()
 
 void FEEdit::setsize()
 {
+    double width = Width(), height = Height();
+    SizeAndVP::UnitsType units = Units();
+    QRectF vp;
+    Viewport(vp);
+    if (setsizedialog->draw(width,height,vp,units)) {
+        updateSize(vp,width,height,units);
+    }
 }
 
 void FEEdit::shrinkwrap()
