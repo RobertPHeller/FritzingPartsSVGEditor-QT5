@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:41 2019
-//  Last Modified : <190524.1007>
+//  Last Modified : <190525.2037>
 //
 //  Description	
 //
@@ -49,6 +49,8 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QStyleOptionGraphicsItem>
 #include <QDomDocument>
 #include <QFile>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 #include "../support/debug.h"
 #include "fseedit.h"
@@ -104,11 +106,13 @@ void FESchematicEditor::_addPin_helper(double xpos, double ypos,
                                        double length, double linethickness, int pinno, 
                                        QString pinname, QString font, int size, QColor color)
 {
-    double cr, ir, px2, py2, lx, ly, nx, ny, ix, iy;
+    double cr = 0, ir = 0, px2 = 0, py2 = 0, lx = 0, ly = 0, nx = 0, ny = 0, 
+          ix = 0, iy = 0;
     bool inverted = false;
     QGraphicsEllipseItem *connection = NULL, *invertCircle = NULL;
     QGraphicsLineItem *leadline = NULL;
     QGraphicsSimpleTextItem *pinnoLabel = NULL, *pinnameLabel = NULL;
+    QString pinnoText(QString::number(pinno));
     gid++;
     cr = .1*length;
     ir = .2*length;
@@ -120,9 +124,9 @@ void FESchematicEditor::_addPin_helper(double xpos, double ypos,
         px2 = xpos+length;
         py2 = ypos;
         lx  = px2+linethickness*2;
-        ly  = ypos;
-        nx  = xpos + (length / 2.0);
-        ny  = ypos - (linethickness * 2);
+        ly  = ypos - (size/2.0);
+        nx  = xpos + (length / 2.0) - ((.7*size)*pinnoText.length());
+        ny  = (ypos - (linethickness * 2)) - (1.2*size);
         if (inverted) {
             px2 -= ir*2;
             ix   = px2+ir;
@@ -134,10 +138,10 @@ void FESchematicEditor::_addPin_helper(double xpos, double ypos,
     case Schematic::PinOrientationAndInversion::RightNormal:
         px2 = xpos - length;
         py2 = ypos;
-        lx  = px2;
-        ly  = ypos-(linethickness*2);
+        lx  = px2 - ((size*.7)*(pinname.length()+1));
+        ly  = ypos - (.5*size);
         nx  = xpos - (length / 2.0);
-        ny  = xpos - (linethickness * 2.0);
+        ny  = ypos - (linethickness * 2.0);
         if (inverted) {
             px2 += ir*2;
             ix   = px2 - ir;
@@ -149,10 +153,10 @@ void FESchematicEditor::_addPin_helper(double xpos, double ypos,
     case Schematic::PinOrientationAndInversion::TopNormal:
         px2 = xpos;
         py2 = ypos + length;
-        lx  = px2;
+        lx  = px2 - ((size*.7)*(pinname.length()/2.0));
         ly  = py2;
         nx  = xpos + (linethickness * 2);
-        ny  = ypos + (length / 2.0);
+        ny  = ypos + (length / 2.0) - size;
         if (inverted) {
             py2 -= ir*2;
             ix   = xpos;
@@ -164,10 +168,10 @@ void FESchematicEditor::_addPin_helper(double xpos, double ypos,
     case Schematic::PinOrientationAndInversion::BottomNormal:
         px2 = xpos;
         py2 = ypos - length;
-        lx  = px2;
-        ly  = py2;
+        lx  = px2 - ((size*.7)*(pinname.length()/2.0));
+        ly  = py2 - (size*1.5);
         nx  = xpos + (linethickness * 2);
-        ny  = ypos - (length / 2.0);
+        ny  = ypos - (length / 2.0) - (size*1.5);
         if (inverted) {
             py2 += ir*2;
             ix   = xpos;
@@ -184,7 +188,7 @@ void FESchematicEditor::_addPin_helper(double xpos, double ypos,
         pinnameLabel->setBrush(color);
         pinnameLabel->setPos(lx,ly);
     }
-    pinnoLabel = canvas->addSimpleText(QString::number(pinno),QFont(font,size));
+    pinnoLabel = canvas->addSimpleText(pinnoText,QFont(font,size));
     pinnoLabel->setBrush(color);
     pinnoLabel->setPos(nx,ny);
     connection->setData((int)FEGraphicsScene::Gid,QVariant(gid));
@@ -252,6 +256,7 @@ void FESchematicEditor::editPin(int gid)
          ii != items.end();
          ii++) {
         QGraphicsItem *item = *ii;
+        stdError << "FESchematicEditor::editPin(): item is " << item << "\n";
         if ((FEGraphicsScene::GroupIdType)(item->data((int)FEGraphicsScene::Group2).toInt()) ==
             FEGraphicsScene::PinConnections) {
             connection = (QGraphicsEllipseItem *)item;
@@ -270,6 +275,7 @@ void FESchematicEditor::editPin(int gid)
             pinnameLabel = (QGraphicsSimpleTextItem*)item;
         }
     }
+    if (connection == NULL || leadline == NULL || pinnoLabel == NULL) return;
     QRectF coords = connection->rect();
     xpos = coords.x()+(coords.width()/2.0);
     ypos = coords.y()+(coords.height()/2.0);
@@ -811,6 +817,280 @@ void FESchematicEditor::editText(int gid)
 
 void FESchematicEditor::loadFile(const QString &filename)
 {
+    QFile infile(filename);
+    infile.open( QIODevice::ReadOnly );
+    QDomDocument fbeSVGDocument;
+    QString errorMessage;
+    int errorLine, errorColumn;
+    if (!fbeSVGDocument.setContent(&infile, true, &errorMessage, &errorLine, &errorColumn)) {
+        // error report...
+        infile.close();
+        return;
+    }
+    QDomNodeList svgList = fbeSVGDocument.elementsByTagName("svg");
+    if (svgList.length() == 0) {
+        // error report: missing <svg></svg>
+        return;
+    } else if (svgList.length() > 1) {
+        // error report: multiple <svg></svg> (?)
+        return;
+    }
+    QDomElement svg = svgList.item(0).toElement();
+    QRegularExpression floatUnits("^([[:digit:]Ee.+-]+)(.*)$");
+    QRegularExpressionMatch match;
+    qreal width = 0, height = 0;
+    QRectF vp;
+    if (svg.attribute("width").contains(floatUnits,&match)) {
+        width = match.captured(1).toFloat();
+        if (match.captured(2) == "in") {
+            width *= 25.4;
+        }
+    }
+    if (svg.attribute("height").contains(floatUnits,&match)) {
+        height = match.captured(1).toFloat();
+        if (match.captured(2) == "in") {
+            height *= 25.4;
+        }
+    }
+    QRegularExpression fourFloats("^([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)$");
+    if (svg.attribute("viewBox").contains(fourFloats,&match)) {
+        vp.setX(match.captured(1).toFloat());
+        vp.setY(match.captured(2).toFloat());
+        vp.setWidth(match.captured(3).toFloat());
+        vp.setHeight(match.captured(4).toFloat());
+    }
+    updateSize(vp,width,height,SizeAndVP::mm);
+    pinSVGList.clear();
+    QDomNodeList children = svg.childNodes();
+    for (int i = 0; i < children.length(); i++) {
+        QDomNode n = children.at(i);
+        if (n.isElement()) {
+            QDomElement e = n.toElement();
+            if (e.tagName() == "g" && e.attribute("id") == "schematic") {
+                processSVGGroup(e);
+            }
+        }
+    }
+    pinSVGList.finalize();
+    infile.close();
+    setClean();
+}
+
+void FESchematicEditor::processSVGTag(QDomElement &element, QDomElement &parentGroup)
+{
+    QString parentGroupId = parentGroup.attribute("id");
+    if (element.tagName() == "g") {
+        processSVGGroup(element);
+    } else if (element.tagName() == "circle") {
+        processCircle(element,parentGroupId);
+    } else if (element.tagName() == "rect") {
+        processRect(element,parentGroupId);
+    } else if (element.tagName() == "line") {
+        processLine(element,parentGroupId);
+    } else if (element.tagName() == "path") {
+        processPath(element,parentGroupId);
+    } else if (element.tagName() == "ellipse") {
+        processEllipse(element,parentGroupId);
+    } else if (element.tagName() == "polygon") {
+        processPolygon(element,parentGroupId);
+    } else if (element.tagName() == "text") {
+        processText(element,parentGroupId);
+    }
+}
+
+void FESchematicEditor::processCircle(QDomElement &element, QString parentID)
+{
+    double xpos = 0, ypos = 0, diameter = 1;
+     
+    gid++;
+    if (parentID == "pin_connections" || parentID == "pins") {
+        pinSVGList.addElement(gid,element,parentID,canvas);
+        return;
+    }              
+    xpos = element.attribute("cx").toFloat();
+    ypos = element.attribute("cy").toFloat();
+    diameter = element.attribute("r").toFloat() * 2;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    if (element.attribute("fill") == "none") {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    } else {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    }
+    double radius=diameter/2.0;
+    qreal x = xpos-radius;
+    qreal y = ypos-radius;
+    qreal w = diameter;
+    qreal h = diameter;
+    QGraphicsItem *item = canvas->addEllipse(x,y,w,h,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FESchematicEditor::processCircle(): gid = " << gid << "\n";
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Schematic));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Circ));
+}
+
+void FESchematicEditor::processRect(QDomElement &element, QString /*parentID*/)
+{
+    double xpos = 0, ypos = 0, width = 1, height = 1;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    gid++;
+    xpos = element.attribute("x").toFloat();
+    ypos = element.attribute("y").toFloat();
+    width = element.attribute("width").toFloat();
+    height = element.attribute("height").toFloat();
+    //stdError << "FESchematicEditor::processRect(): element.attribute(\"fill\") " << element.attribute("fill") << "\n"; 
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    QGraphicsItem *item = canvas->addRect(xpos,ypos,width,height,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FESchematicEditor::processRect(): gid = " << gid << "\n";
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Rect));
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Schematic));
+}
+
+void FESchematicEditor::processLine(QDomElement &element, QString parentID)
+{
+    double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    QPen pen(Qt::SolidLine);
+    
+    gid++;
+    if (parentID == "pins") {
+        pinSVGList.addElement(gid,element,parentID,canvas);
+        return;
+    }              
+    x1 = element.attribute("x1").toFloat();
+    y1 = element.attribute("y1").toFloat();
+    x2 = element.attribute("x2").toFloat();
+    y2 = element.attribute("y2").toFloat();
+    pen.setColor(QColor(element.attribute("stroke")));
+    pen.setWidthF(element.attribute("stroke-width").toFloat());
+    QGraphicsItem *item = canvas->addLine(x1, y1, x2, y2, pen);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Line));
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Schematic));
+}
+
+void FESchematicEditor::processPath(QDomElement &element, QString parentID)
+{
+}
+
+void FESchematicEditor::processPolygon(QDomElement &element, QString /*parentID*/)
+{
+    QPolygonF points;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    gid++;
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    QRegularExpression pointExpr("^([[:digit:].Ee+-]+)[[:space:],]+([[:digit:].Ee+-]+)[[:space:],]*(.*)$");
+    QRegularExpressionMatch match;
+    QString pointString = element.attribute("points");
+    while (pointString.contains(pointExpr,&match)) {
+        QPointF p(match.captured(1).toFloat(),match.captured(2).toFloat());
+        pointString = match.captured(3);
+        points.push_back(p);
+    }
+    QGraphicsItem *item = canvas->addPolygon(points,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Poly));
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Schematic));
+    
+}
+
+void FESchematicEditor::processEllipse(QDomElement &element, QString parentID)
+{
+    double xpos = 0, ypos = 0, rx = 0, ry = 0;
+     
+    gid++;
+    if (parentID == "pin_connections" || parentID == "pins") {
+        pinSVGList.addElement(gid,element,parentID,canvas);
+        return;
+    }              
+    xpos = element.attribute("cx").toFloat();
+    ypos = element.attribute("cy").toFloat();
+    rx = element.attribute("rx").toFloat();
+    ry = element.attribute("ry").toFloat();
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    if (element.attribute("fill") == "none") {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    } else {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    }
+    qreal x = xpos-rx;
+    qreal y = ypos-ry;
+    qreal w = rx*2;
+    qreal h = ry*2;
+    QGraphicsItem *item = canvas->addEllipse(x,y,w,h,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FESchematicEditor::processEllipse(): gid = " << gid << "\n";
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Schematic));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Circ));
+}
+
+void FESchematicEditor::processText(QDomElement &element, QString parentID)
+{
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    QFont font;
+    gid++;
+    if (parentID == "pin_labels" || parentID == "pin_numbers") {
+        pinSVGList.addElement(gid,element,parentID,canvas);
+        return;
+    }              
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    font.setFamily(element.attribute("font-family"));
+    font.setPointSize(element.attribute("font-size").toFloat());
+    qreal x = element.attribute("x").toFloat();
+    qreal y = element.attribute("y").toFloat();
+    QDomText txt = element.firstChild().toText();
+    QGraphicsSimpleTextItem *titem = canvas->addSimpleText(txt.data(),font);
+    titem->setBrush(brush);
+    titem->setPen(pen);
+    titem->setPos(x,y);
+    titem->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FESchematicEditor::processText(): gid = " << gid << "\n";
+    titem->setData((int)FEGraphicsScene::Type,
+                   QVariant((int)FEGraphicsScene::Text));
+    titem->setData((int)FEGraphicsScene::Group1,
+                   QVariant((int)FEGraphicsScene::Schematic));
+    
 }
 
 void FESchematicEditor::saveFile(const QString &filename)
@@ -892,3 +1172,312 @@ void FESchematicEditor::saveFile(const QString &filename)
     setClean();
 }
 
+
+void FESchematicEditor::PinSVGList::addElement(int gid, QDomElement &element,
+                                               QString groupName,
+                                               FEGraphicsScene *canvas)
+{
+    //stdError << "FESchematicEditor::PinSVGList::addElement() groupName = " << groupName << "\n";
+    //stdError << "FESchematicEditor::PinSVGList::addElement() elementtagName() = " << element.tagName() << "\n";
+    if (groupName == "pin_connections" && element.tagName() == "circle") {
+        addConnection(gid,element,canvas);
+    } else if (groupName == "pin_labels" && element.tagName() == "text") {
+        addLabel(gid,element,canvas);
+    } else if (groupName == "pin_numbers" && element.tagName() == "text") {
+        addNumber(gid,element,canvas);
+    } else if (element.tagName() == "circle") {
+        addInvert(gid,element,canvas);
+    } else if (element.tagName() == "line") {
+        addLead(gid,element,canvas);
+    }
+}
+
+void FESchematicEditor::PinSVGList::addConnection(int gid, 
+                                                  QDomElement &connection,
+                                                  FEGraphicsScene *canvas)
+{
+    //stdError << "FESchematicEditor::PinSVGList::addConnection()\n";
+    QRegularExpression connectorExpr("^connector([[:digit:]]+)pin$");
+    QRegularExpressionMatch match;
+    qreal x = connection.attribute("cx").toFloat();
+    qreal y = connection.attribute("cy").toFloat();
+    qreal cr = connection.attribute("r").toFloat();
+    //stdError << "FESchematicEditor::PinSVGList::addConnection() x = " << x << " y = " << y << " cr = " << cr << "\n";
+    ele_iterator eleI = findByGid(gid);
+    if (eleI == _list.end()) {
+        eleI = findByXY(x,y,cr*10.5);
+        if (eleI == _list.end()) {
+            _list.push_back(Element());
+            eleI = _list.end()-1;
+            eleI->gid = gid;
+    
+        }
+    }
+    //stdError << "FESchematicEditor::PinSVGList::addConnection() eleI->gid = " << eleI->gid << "\n";
+    if (connection.attribute("id").contains(connectorExpr,&match)) {
+        eleI->pinnumber = match.captured(1).toInt();
+    }
+    //stdError << "FESchematicEditor::PinSVGList::addConnection() eleI->pinnumber = " << eleI->pinnumber << "\n";
+    eleI->x = x;
+    eleI->y = y;
+    eleI->length = cr*10;    
+    eleI->color = QColor(connection.attribute("fill"));
+    eleI->connection = connection;
+    //stdError << "FESchematicEditor::PinSVGList::addConnection() eleI->x = " << eleI->x << "eleI->y = " << eleI->y << "eleI->length = " << eleI->length << "\n";
+    qreal x0 = eleI->x - cr;
+    qreal y0 = eleI->y - cr;
+    qreal w = cr*2;
+    qreal h = cr*2;
+    eleI->connectionGI = canvas->addEllipse(x0,y0,w,h,QPen(Qt::NoPen),QBrush(eleI->color));
+    //stdError << "FESchematicEditor::PinSVGList::addConnection() eleI->connectionGI = " << eleI->connectionGI << ":\n" << *(eleI->connectionGI) << "\n";
+    eleI->connectionGI->setData((int)FEGraphicsScene::Gid,QVariant(eleI->gid));
+    eleI->connectionGI->setData((int)FEGraphicsScene::Pinno,QVariant(eleI->pinnumber));
+    eleI->connectionGI->setData((int)FEGraphicsScene::Type, 
+                                QVariant((int)FEGraphicsScene::Pin));
+    eleI->connectionGI->setData((int)FEGraphicsScene::Group1,
+                                QVariant((int)FEGraphicsScene::Schematic));
+    eleI->connectionGI->setData((int)FEGraphicsScene::Group2,
+                                QVariant((int)FEGraphicsScene::PinConnections));
+}
+
+void FESchematicEditor::PinSVGList::addLead(int gid, QDomElement &lead,
+                                            FEGraphicsScene *canvas)
+{
+    //stdError << "FESchematicEditor::PinSVGList::addLead()\n";
+    ele_iterator eleI = findByGid(gid);
+    qreal x1 = lead.attribute("x1").toFloat();
+    qreal y1 = lead.attribute("y1").toFloat();
+    qreal x2 = lead.attribute("x2").toFloat();
+    qreal y2 = lead.attribute("y2").toFloat();
+    //stdError << "FESchematicEditor::PinSVGList::addConnection() x1 = " << x1 << " y1 = " << y1 << " x2 = " << x2 << " y2 = " << y2 << "\n";
+    if (eleI == _list.end()) {
+        qreal dx = x2-x1;
+        qreal dy = y2-y1;
+        qreal tentitiveLength = 1.05*sqrt((dx*dx)+(dy*dy));
+        eleI = findByXY(x1,y1,tentitiveLength);
+        if (eleI == _list.end()) {
+            eleI = findByXY(x2,y2,tentitiveLength);
+        }
+        if (eleI == _list.end()) {
+            _list.push_back(Element());
+            eleI = _list.end()-1;
+            eleI->gid = gid;
+            eleI->x = x1;
+            eleI->y = y1;
+            eleI->length = tentitiveLength;
+        }
+    }
+    //stdError << "FESchematicEditor::PinSVGList::addLead() eleI->gid = " << eleI->gid << "\n";
+    eleI->lead = lead;
+    QColor color(lead.attribute("stroke"));
+    qreal linethickness = lead.attribute("stroke-width").toFloat();
+    
+    eleI->leadGI = canvas->addLine(x1,y1,x2,y2, QPen(color,linethickness));
+    //stdError << "FESchematicEditor::PinSVGList::addLead() eleI->leadGI = " << eleI->leadGI << ":\n" << *(eleI->leadGI) << "\n";
+    eleI->leadGI->setData((int)FEGraphicsScene::Gid,QVariant(eleI->gid));
+    eleI->leadGI->setData((int)FEGraphicsScene::Type,
+                          QVariant((int)FEGraphicsScene::Pin));
+    eleI->leadGI->setData((int)FEGraphicsScene::Group1,
+                          QVariant((int)FEGraphicsScene::Schematic));
+    eleI->leadGI->setData((int)FEGraphicsScene::Group2,
+                          QVariant((int)FEGraphicsScene::Pins));
+}
+
+void FESchematicEditor::PinSVGList::addInvert(int gid, QDomElement &invert,
+                                              FEGraphicsScene *canvas)
+{
+    //stdError << "FESchematicEditor::PinSVGList::addInvert()\n";
+    qreal cx = invert.attribute("cx").toFloat();
+    qreal cy = invert.attribute("cy").toFloat();
+    qreal ir = invert.attribute("r").toFloat();
+    ele_iterator eleI = findByGid(gid);
+    if (eleI == _list.end()) {
+        qreal tentitiveLength = 5.1*ir;
+        eleI = findByXY(cx,cy,tentitiveLength);
+        if (eleI == _list.end()) {
+            _list.push_back(Element());
+            eleI->gid = gid;
+            eleI->x = cx;
+            eleI->y = cy;
+            eleI->length = tentitiveLength;
+        }
+    }
+    eleI->invert = invert;
+    QColor color(invert.attribute("stroke"));
+    qreal linethickness = invert.attribute("stroke-width").toFloat();
+    qreal x0 = cx-ir;
+    qreal y0 = cy-ir;
+    qreal w  = ir*2;
+    qreal h  = ir*2;
+    eleI->invertGI = canvas->addEllipse(x0,y0,w,h,QPen(color,linethickness),QBrush(Qt::NoBrush));
+    eleI->invertGI->setData((int)FEGraphicsScene::Gid,QVariant(eleI->gid));
+    eleI->invertGI->setData((int)FEGraphicsScene::Type,
+                            QVariant((int)FEGraphicsScene::Pin));
+    eleI->invertGI->setData((int)FEGraphicsScene::Group1,
+                            QVariant((int)FEGraphicsScene::Schematic));
+    eleI->invertGI->setData((int)FEGraphicsScene::Group2,
+                            QVariant((int)FEGraphicsScene::Pins));
+}
+
+void FESchematicEditor::PinSVGList::addNumber(int gid, QDomElement &number,
+                                              FEGraphicsScene *canvas)
+{
+    //stdError << "FESchematicEditor::PinSVGList::addNumber()\n";
+    qreal nx = number.attribute("x").toFloat();
+    qreal ny = number.attribute("y").toFloat();
+    QFont font(number.attribute("font-family"),number.attribute("font-size").toFloat());
+    QColor color(number.attribute("fill"));
+    QDomText txt = number.firstChild().toText();
+    ele_iterator eleI = findByGid(gid);
+    if (eleI == _list.end()) {
+        eleI = findByXY(nx,ny,number.attribute("font-size").toFloat()*6);
+        if (eleI == _list.end()) {
+            _list.push_back(Element());
+            eleI->gid = gid;
+        }
+    }
+    eleI->number = number;
+    eleI->numberGI = canvas->addSimpleText(txt.data(),font);
+    eleI->numberGI->setBrush(color);
+    eleI->numberGI->setPos(nx,ny);
+    eleI->numberGI->setData((int)FEGraphicsScene::Gid,QVariant(eleI->gid));
+    eleI->numberGI->setData((int)FEGraphicsScene::Type,
+                            QVariant((int)FEGraphicsScene::Pin));
+    eleI->numberGI->setData((int)FEGraphicsScene::Group1,
+                            QVariant((int)FEGraphicsScene::Schematic));
+    eleI->numberGI->setData((int)FEGraphicsScene::Group2,
+                            QVariant((int)FEGraphicsScene::PinNumbers));  
+}
+
+void FESchematicEditor::PinSVGList::addLabel(int gid, QDomElement &label,
+                                             FEGraphicsScene *canvas)
+{
+    //stdError << "FESchematicEditor::PinSVGList::addLabeladdElement()\n";
+    qreal nx = label.attribute("x").toFloat();
+    qreal ny = label.attribute("y").toFloat();
+    QFont font(label.attribute("font-family"),label.attribute("font-size").toFloat());
+    QColor color(label.attribute("fill"));
+    QDomText txt = label.firstChild().toText();
+    ele_iterator eleI = findByGid(gid);
+    if (eleI == _list.end()) {
+        eleI = findByXY(nx,ny,label.attribute("font-size").toFloat()*6);
+        if (eleI == _list.end()) {
+            _list.push_back(Element());
+            eleI->gid = gid;
+        }
+    }
+    eleI->label = label;
+    eleI->labelGI = canvas->addSimpleText(txt.data(),font);
+    eleI->labelGI->setBrush(color);
+    eleI->labelGI->setPos(nx,ny);
+    eleI->labelGI->setData((int)FEGraphicsScene::Gid,QVariant(eleI->gid));
+    eleI->labelGI->setData((int)FEGraphicsScene::Type,
+                           QVariant((int)FEGraphicsScene::Pin));
+    eleI->labelGI->setData((int)FEGraphicsScene::Group1,
+                           QVariant((int)FEGraphicsScene::Schematic));
+    eleI->labelGI->setData((int)FEGraphicsScene::Group2,
+                           QVariant((int)FEGraphicsScene::PinLabels));
+}
+
+FESchematicEditor::PinSVGList::ele_iterator FESchematicEditor::PinSVGList::findByXY(qreal x, qreal y, qreal halo)
+{
+    for (ele_iterator i = _list.begin(); i != _list.end(); i++) {
+        Element ele = *i;
+        if (ele.x >= x-halo && ele.x <= x+halo &&
+            ele.y >= y-halo && ele.y <= y+halo) return i;
+    }
+    return _list.end();;
+}
+
+FESchematicEditor::PinSVGList::ele_iterator FESchematicEditor::PinSVGList::findByGid(int searchgid)
+{
+    for (ele_iterator i = _list.begin(); i != _list.end(); i++) {
+        Element ele = *i;
+        if (ele.gid == searchgid) return i;
+    }
+    return _list.end();
+}
+
+
+void FESchematicEditor::PinSVGList::finalize()
+{
+    //stdError << "FESchematicEditor::PinSVGList::finalize()\n";
+    for (ele_iterator i = _list.begin(); i != _list.end(); i++) {
+        Element ele = *i;
+        //stdError << "FESchematicEditor::PinSVGList::finalize() ele: \n";
+        //stdError << "\tx = " << ele.x << "\n";
+        //stdError << "\ty = " << ele.y << "\n";
+        //stdError << "\tlength = " << ele.length << "\n";
+        //stdError << "\tcolor = " << ele.color << "\n";
+        //stdError << "\tgid = " << ele.gid << "\n";
+        //stdError << "\tpinnumber = " << ele.pinnumber << "\n";
+        //stdError << "\tconnectionGI = " << ele.connectionGI << "\n";
+        //if (ele.connectionGI != NULL) {
+        //    int gid = ele.connectionGI->data((int)FEGraphicsScene::Gid).toInt();
+        //    int pinnum = ele.connectionGI->data((int)FEGraphicsScene::Pinno).toInt();
+        //    stdError << "\tconnectionGI->data(Gid) = " << gid <<"\n";
+        //    stdError << "\tconnectionGI->data(Pinno) = " << pinnum <<"\n";
+        //}
+        //stdError << "\tinvertGI = " << ele.invertGI << "\n";
+        //if (ele.invertGI != NULL) {
+        //   int gid = ele.invertGI->data((int)FEGraphicsScene::Gid).toInt();
+        //    stdError << "\tinvertGI->data(Gid) = " << gid <<"\n";
+        //}
+        //stdError << "\tleadGI = " << ele.leadGI << "\n";
+        //if (ele.leadGI != NULL) {
+        //    int gid = ele.leadGI->data((int)FEGraphicsScene::Gid).toInt();
+        //    stdError << "\tleadGI->data(Gid) = " << gid <<"\n";
+        //}
+        //stdError << "\tnumberGI = " << ele.numberGI << "\n";
+        //if (ele.numberGI != NULL) {
+        //    int gid = ele.numberGI->data((int)FEGraphicsScene::Gid).toInt();
+        //    stdError << "\tnumberGI->data(Gid) = " << gid <<"\n";
+        //}
+        //stdError << "\tlabelGI = " << ele.labelGI << "\n";
+        //if (ele.labelGI != NULL) {
+        //    int gid = ele.labelGI->data((int)FEGraphicsScene::Gid).toInt();
+        //    stdError << "\tlabelGI->data(Gid) = " << gid <<"\n";
+        //}
+        //if (ele.leadGI == NULL) continue;
+        QLineF coords = ele.leadGI->line();
+        if (coords.x1() == coords.x2()) {
+            // Vertical (top or bottom)
+            if (coords.y2() > coords.y1()) {
+                // Top
+                if (ele.invertGI == NULL) {
+                    ele.orientation = Schematic::PinOrientationAndInversion::TopNormal;
+                } else {
+                    ele.orientation = Schematic::PinOrientationAndInversion::TopInverted;
+                }
+            } else {
+                // Bottom
+                if (ele.invertGI == NULL) {
+                    ele.orientation = Schematic::PinOrientationAndInversion::BottomNormal;
+                } else {
+                    ele.orientation = Schematic::PinOrientationAndInversion::BottomInverted;
+                }
+            }
+        } else {
+            // Horizontal (left or right)
+            if (coords.x2() > coords.x1()) {
+                // Left
+                if (ele.invertGI == NULL) {
+                    ele.orientation = Schematic::PinOrientationAndInversion::LeftNormal;
+                } else {
+                    ele.orientation = Schematic::PinOrientationAndInversion::LeftInverted;
+                }
+            } else {
+                // Right
+                if (ele.invertGI == NULL) {
+                    ele.orientation = Schematic::PinOrientationAndInversion::RightNormal;
+                } else {
+                    ele.orientation = Schematic::PinOrientationAndInversion::RightInverted;
+                }
+            }
+        }
+        ele.leadGI->setData((int)FEGraphicsScene::Orientation,
+                            QVariant((int)ele.orientation));
+        ele.leadGI->setData((int)FEGraphicsScene::Length,
+                            QVariant(ele.length));
+    }
+}

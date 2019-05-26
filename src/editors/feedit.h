@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190523.0901>
+//  Last Modified : <190524.2109>
 //
 //  Description	
 //
@@ -258,6 +258,8 @@ private:
     QString formatZoom(double zoom);
 };
 
+class QDomElement;
+
 class FEEdit : public QWidget 
 {
     Q_OBJECT
@@ -285,6 +287,7 @@ protected:
     inline void setBackgroundBrush(const QBrush &brush) {
         canvasView->setBackgroundBrush(brush);
     }
+    void updateSize(const QRectF &vp, qreal width, qreal height, SizeAndVP::UnitsType unit);
     
     int gid; // GID to uniquely identify objects (including grouped objects)
     int pinno; // Pin numbers
@@ -377,6 +380,7 @@ protected:
         emit dirtyFlagChanged(isdirty);
     }
     FEGraphicsScene *canvas;
+    void processSVGGroup(QDomElement &group);
 protected slots:
     virtual void addPin() = 0;
     virtual void editPin(int gid) = 0;
@@ -392,6 +396,7 @@ protected slots:
     virtual void editPoly(int gid) = 0;
     virtual void addText() = 0;
     virtual void editText(int gid) = 0;
+    virtual void processSVGTag(QDomElement &element, QDomElement &parentGroup) = 0;
 private slots:
     void setZoom_16()    {setZoom(16.0);}
     void setZoom_8()     {setZoom(8.0);}

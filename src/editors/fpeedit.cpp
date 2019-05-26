@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:51:02 2019
-//  Last Modified : <190524.1008>
+//  Last Modified : <190525.2140>
 //
 //  Description	
 //
@@ -48,6 +48,8 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QDebug>
 #include <QDomDocument>
 #include <QFile>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 #include "../support/debug.h"
 #include "fpeedit.h"
@@ -640,7 +642,351 @@ void FEPCBEditor::editText(int gid)
 
 void FEPCBEditor::loadFile(const QString &filename)
 {
+    QFile infile(filename);
+    infile.open( QIODevice::ReadOnly );
+    QDomDocument fbeSVGDocument;
+    QString errorMessage;
+    int errorLine, errorColumn;
+    if (!fbeSVGDocument.setContent(&infile, true, &errorMessage, &errorLine, &errorColumn)) {
+        // error report...
+        infile.close();
+        return;
+    }
+    QDomNodeList svgList = fbeSVGDocument.elementsByTagName("svg");
+    if (svgList.length() == 0) {
+        // error report: missing <svg></svg>
+        return;
+    } else if (svgList.length() > 1) {
+        // error report: multiple <svg></svg> (?)
+        return;
+    }
+    QDomElement svg = svgList.item(0).toElement();
+    QRegularExpression floatUnits("^([[:digit:]Ee.+-]+)(.*)$");
+    QRegularExpressionMatch match;
+    qreal width = 0, height = 0;
+    QRectF vp;
+    if (svg.attribute("width").contains(floatUnits,&match)) {
+        width = match.captured(1).toFloat();
+        if (match.captured(2) == "in") {
+            width *= 25.4;
+        }
+    }
+    if (svg.attribute("height").contains(floatUnits,&match)) {
+        height = match.captured(1).toFloat();
+        if (match.captured(2) == "in") {
+            height *= 25.4;
+        }
+    }
+    QRegularExpression fourFloats("^([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)$");
+    if (svg.attribute("viewBox").contains(fourFloats,&match)) {
+        vp.setX(match.captured(1).toFloat());
+        vp.setY(match.captured(2).toFloat());
+        vp.setWidth(match.captured(3).toFloat());
+        vp.setHeight(match.captured(4).toFloat());
+    }
+    updateSize(vp,width,height,SizeAndVP::mm);
+    
+    QDomNodeList children = svg.childNodes();
+    for (int i = 0; i < children.length(); i++) {
+        QDomNode n = children.at(i);
+        if (n.isElement()) {
+            QDomElement e = n.toElement();
+            if (e.tagName() == "g" && (e.attribute("id") == "silkscreen" ||
+                                       e.attribute("id") == "copper0" ||
+                                       e.attribute("id") == "copper1")) {
+                processSVGGroup(e);
+            }
+        }
+    }
+    
+    
+    infile.close();
+    setClean();
 }
+
+void FEPCBEditor::processSVGTag(QDomElement &element, QDomElement &parentGroup)
+{
+    QString parentGroupId(parentGroup.attribute("id"));
+    if (element.tagName() == "g") {
+        processSVGGroup(element);
+    } else if (element.tagName() == "circle") {
+        processCircle(element,parentGroupId);
+    } else if (element.tagName() == "rect") {
+        processRect(element,parentGroupId);
+    } else if (element.tagName() == "line") {
+        processLine(element,parentGroupId);
+    } else if (element.tagName() == "path") {
+        processPath(element,parentGroupId);
+    } else if (element.tagName() == "ellipse") {
+        processEllipse(element,parentGroupId);
+    } else if (element.tagName() == "polygon") {
+        processPolygon(element,parentGroupId);
+    } else if (element.tagName() == "text") {
+        processText(element,parentGroupId);
+    }
+}
+
+void FEPCBEditor::processCircle(QDomElement &element, QString parentID)
+{
+    QRegularExpression connectorExpr("^connector([[:digit:]]+)pin$");
+    QRegularExpressionMatch match;
+    int pinnumber = 0;
+    double xpos = 0, ypos = 0, diameter = 1;
+    bool isPin = false;
+     
+    gid++;
+    if (element.attribute("id").contains(connectorExpr,&match)) {
+        pinnumber = match.captured(1).toInt();
+        isPin = true;
+    }
+    xpos = element.attribute("cx").toFloat();
+    ypos = element.attribute("cy").toFloat();
+    diameter = element.attribute("r").toFloat() * 2;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    if (element.attribute("fill") == "none") {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    } else {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    }
+    double radius=diameter/2.0;
+    qreal x = xpos-radius;
+    qreal y = ypos-radius;
+    qreal w = diameter;
+    qreal h = diameter;
+    QGraphicsItem *item = canvas->addEllipse(x,y,w,h,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processCircle(): gid = " << gid << "\n";
+    if (parentID == "silkscreen") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Silkscreen));
+    } else if (parentID == "copper0" || parentID == "copper1") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Copper0));
+        item->setData((int)FEGraphicsScene::Group2,
+                      QVariant((int)FEGraphicsScene::Copper1));
+    }
+    if (isPin) {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Pin));
+        item->setData((int)FEGraphicsScene::Pinno,QVariant(pinnumber));
+        if (pinnumber > pinno) pinno = pinnumber;
+        //stdError << "FEBreadboardEditor::processCircle(): pinnumber = " << pinnumber << "\n";
+    } else {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Circ));
+    }
+}
+
+void FEPCBEditor::processRect(QDomElement &element, QString parentID)
+{
+    double xpos = 0, ypos = 0, width = 1, height = 1;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    gid++;
+    xpos = element.attribute("x").toFloat();
+    ypos = element.attribute("y").toFloat();
+    width = element.attribute("width").toFloat();
+    height = element.attribute("height").toFloat();
+    //stdError << "FEBreadboardEditor::processRect(): element.attribute(\"fill\") " << element.attribute("fill") << "\n"; 
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    QGraphicsItem *item = canvas->addRect(xpos,ypos,width,height,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processRect(): gid = " << gid << "\n";
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Rect));
+    if (parentID == "silkscreen") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Silkscreen));
+    } else if (parentID == "copper0" || parentID == "copper1") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Copper0));
+        item->setData((int)FEGraphicsScene::Group2,
+                      QVariant((int)FEGraphicsScene::Copper1));
+    }
+}
+
+void FEPCBEditor::processLine(QDomElement &element, QString parentID)
+{
+    double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    QPen pen(Qt::SolidLine);
+    
+    gid++;
+    x1 = element.attribute("x1").toFloat();
+    y1 = element.attribute("y1").toFloat();
+    x2 = element.attribute("x2").toFloat();
+    y2 = element.attribute("y2").toFloat();
+    pen.setColor(QColor(element.attribute("stroke")));
+    pen.setWidthF(element.attribute("stroke-width").toFloat());
+    QGraphicsItem *item = canvas->addLine(x1, y1, x2, y2, pen);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Line));
+    if (parentID == "silkscreen") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Silkscreen));
+    } else if (parentID == "copper0" || parentID == "copper1") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Copper0));
+        item->setData((int)FEGraphicsScene::Group2,
+                      QVariant((int)FEGraphicsScene::Copper1));
+    }
+}
+
+void FEPCBEditor::processPath(QDomElement &element, QString parentID)
+{
+//    if (parentID == "silkscreen") {
+//        item->setData((int)FEGraphicsScene::Group1,
+//                      QVariant((int)FEGraphicsScene::Silkscreen));
+//    } else if (parentID == "copper0" || parentID == "copper1") {
+//        item->setData((int)FEGraphicsScene::Group1,
+//                      QVariant((int)FEGraphicsScene::Copper0));
+//        item->setData((int)FEGraphicsScene::Group2,
+//                      QVariant((int)FEGraphicsScene::Copper1));
+//    }
+}
+
+void FEPCBEditor::processEllipse(QDomElement &element, QString parentID)
+{
+    QRegularExpression connectorExpr("^connector([[:digit:]]+)pin$");
+    QRegularExpressionMatch match;
+    int pinnumber;
+    double xpos = 0, ypos = 0, rx = 0, ry = 0;
+    bool isPin = false;
+     
+    gid++;
+    if (element.attribute("id").contains(connectorExpr,&match)) {
+        pinnumber = match.captured(1).toInt();
+        isPin = true;
+    }
+    xpos = element.attribute("cx").toFloat();
+    ypos = element.attribute("cy").toFloat();
+    rx = element.attribute("rx").toFloat();
+    ry = element.attribute("ry").toFloat();
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    if (element.attribute("fill") == "none") {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    } else {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    }
+    qreal x = xpos-rx;
+    qreal y = ypos-ry;
+    qreal w = rx*2;
+    qreal h = ry*2;
+    QGraphicsItem *item = canvas->addEllipse(x,y,w,h,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processEllipse(): gid = " << gid << "\n";
+    if (parentID == "silkscreen") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Silkscreen));
+    } else if (parentID == "copper0" || parentID == "copper1") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Copper0));
+        item->setData((int)FEGraphicsScene::Group2,
+                      QVariant((int)FEGraphicsScene::Copper1));
+    }
+    if (isPin) {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Pin));
+        item->setData((int)FEGraphicsScene::Pinno,QVariant(pinnumber));
+        if (pinnumber > pinno) pinno = pinnumber;
+        //stdError << "FEBreadboardEditor::processEllipse(): pinnumber = " << pinnumber << "\n";
+    } else {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Circ));
+    }
+}
+
+void FEPCBEditor::processText(QDomElement &element, QString parentID)
+{
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    QFont font;
+    gid++;
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    font.setFamily(element.attribute("font-family"));
+    font.setPointSize(element.attribute("font-size").toFloat());
+    qreal x = element.attribute("x").toFloat();
+    qreal y = element.attribute("y").toFloat();
+    QDomText txt = element.firstChild().toText();
+    QGraphicsSimpleTextItem *titem = canvas->addSimpleText(txt.data(),font);
+    titem->setBrush(brush);
+    titem->setPen(pen);
+    titem->setPos(x,y);
+    titem->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processText(): gid = " << gid << "\n";
+    titem->setData((int)FEGraphicsScene::Type,
+                   QVariant((int)FEGraphicsScene::Text));
+    if (parentID == "silkscreen") {
+        titem->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Silkscreen));
+    } else if (parentID == "copper0" || parentID == "copper1") {
+        titem->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Copper0));
+        titem->setData((int)FEGraphicsScene::Group2,
+                      QVariant((int)FEGraphicsScene::Copper1));
+    }
+}
+
+void FEPCBEditor::processPolygon(QDomElement &element, QString parentID)
+{
+    QPolygonF points;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    gid++;
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    QRegularExpression pointExpr("^([[:digit:].Ee+-]+)[[:space:],]+([[:digit:].Ee+-]+)[[:space:],]*(.*)$");
+    QRegularExpressionMatch match;
+    QString pointString = element.attribute("points");
+    while (pointString.contains(pointExpr,&match)) {
+        QPointF p(match.captured(1).toFloat(),match.captured(2).toFloat());
+        pointString = match.captured(3);
+        points.push_back(p);
+    }
+    QGraphicsItem *item = canvas->addPolygon(points,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Poly));
+    if (parentID == "silkscreen") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Silkscreen));
+    } else if (parentID == "copper0" || parentID == "copper1") {
+        item->setData((int)FEGraphicsScene::Group1,
+                      QVariant((int)FEGraphicsScene::Copper0));
+        item->setData((int)FEGraphicsScene::Group2,
+                      QVariant((int)FEGraphicsScene::Copper1));
+    }
+}
+
+
 
 void FEPCBEditor::saveFile(const QString &filename)
 {

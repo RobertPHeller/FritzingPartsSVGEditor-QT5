@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:45:04 2019
-//  Last Modified : <190522.1220>
+//  Last Modified : <190525.0922>
 //
 //  Description	
 //
@@ -72,6 +72,7 @@ protected slots:
     virtual void editPoly(int gid);
     virtual void addText();
     virtual void editText(int gid);
+    virtual void processSVGTag(QDomElement &element, QDomElement &parentGroup);
 private:
     Breadboard::AddPinDialog *addPinDialog;
     Breadboard::AddRectDialog *addRectDialog;
@@ -80,6 +81,14 @@ private:
     Breadboard::AddArcDialog *addArcDialog;
     Breadboard::AddPolyDialog *addPolyDialog;
     Breadboard::AddTextDialog *addTextDialog;
+    
+    void processCircle(QDomElement &element);
+    void processRect(QDomElement &element);
+    void processLine(QDomElement &element);
+    void processPath(QDomElement &element);
+    void processEllipse(QDomElement &element);
+    void processText(QDomElement &element);
+    void processPolygon(QDomElement &element);
 };
 
 #endif // __FBEEDIT_H

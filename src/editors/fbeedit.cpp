@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190524.1005>
+//  Last Modified : <190525.1918>
 //
 //  Description	
 //
@@ -49,11 +49,8 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QStyleOptionGraphicsItem>
 #include <QDomDocument>
 #include <QFile>
-#include <QGraphicsTextItem>
-#include <QPaintEngine>
-#include <QPaintEngineState>
-#include <QTextItem>
-#include <QPointF>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 #include "../support/debug.h"
 #include "fbedialogs.h"
@@ -124,12 +121,12 @@ void FEBreadboardEditor::editPin(int gid)
     }
     QGraphicsEllipseItem *eitem = (QGraphicsEllipseItem *) item;
     QRectF coords = eitem->rect();
-    stdError << "FEBreadboardEditor::editPin(): coords.x() = " << coords.x() << ", coords.y() = " << coords.y() << ", coords.width() = " << coords.width() << ", coords.height() = " << coords.height() << '\n';
+    //stdError << "FEBreadboardEditor::editPin(): coords.x() = " << coords.x() << ", coords.y() = " << coords.y() << ", coords.width() = " << coords.width() << ", coords.height() = " << coords.height() << '\n';
     xpos = coords.x()+(coords.width()/2.0);
     ypos = coords.y()+(coords.height()/2.0);
     diameter = (coords.height()+coords.width())/2.0;
-    stdError << "FEBreadboardEditor::editPin(): xpos = " << xpos << ", ypos = " << ypos << ", diameter = " << diameter << '\n';
-    stdError << "FEBreadboardEditor::editPin(): xpos = " << xpos << ", ypos = " << ypos << ", diameter = " << diameter << '\n';
+    //stdError << "FEBreadboardEditor::editPin(): xpos = " << xpos << ", ypos = " << ypos << ", diameter = " << diameter << '\n';
+    //stdError << "FEBreadboardEditor::editPin(): xpos = " << xpos << ", ypos = " << ypos << ", diameter = " << diameter << '\n';
     color = eitem->brush().color();
     editpinno = eitem->data((int)FEGraphicsScene::Pinno).toInt();
     
@@ -269,7 +266,7 @@ void FEBreadboardEditor::editLine(int gid)
     y2 = coords.y2();
     QPen pen = eitem->pen();
     color = pen.color();
-    linethickness = pen.width();
+    linethickness = pen.widthF();
     if (addLineDialog->draw(x1, y1, x2, y2, linethickness, color, true, tr("Add Line"), tr("Add"))) {
         canvas->removeItem(eitem);
         delete eitem;
@@ -652,6 +649,304 @@ void FEBreadboardEditor::editText(int gid)
 
 void FEBreadboardEditor::loadFile(const QString &filename)
 {
+    QFile infile(filename);
+    infile.open( QIODevice::ReadOnly );
+    QDomDocument fbeSVGDocument;
+    QString errorMessage;
+    int errorLine, errorColumn;
+    if (!fbeSVGDocument.setContent(&infile, true, &errorMessage, &errorLine, &errorColumn)) {
+        // error report: read/parse error
+        infile.close();
+        return;
+    }
+    QDomNodeList svgList = fbeSVGDocument.elementsByTagName("svg");
+    if (svgList.length() == 0) {
+        // error report: missing <svg></svg>
+        return;
+    } else if (svgList.length() > 1) {
+        // error report: multiple <svg></svg> (?)
+        return;
+    }
+    QDomElement svg = svgList.item(0).toElement();
+    QRegularExpression floatUnits("^([[:digit:]Ee.+-]+)(.*)$");
+    QRegularExpressionMatch match;
+    qreal width = 0, height = 0;
+    QRectF vp;
+    //stdError << "FEBreadboardEditor::loadFile(): svg.attribute('width') is " << svg.attribute("width") << "\n";
+    if (svg.attribute("width").contains(floatUnits,&match)) {
+        //stdError << "FEBreadboardEditor::loadFile(): match.captured(1) is " << match.captured(2) << " match.captured(1) is " << match.captured(1) << "\n";
+        width = match.captured(1).toFloat();
+        if (match.captured(2) == "in") {
+            width *= 25.4;
+        }
+    }
+    //stdError << "FEBreadboardEditor::loadFile(): svg.attribute('height') is " << svg.attribute("height") << "\n";
+    if (svg.attribute("height").contains(floatUnits,&match)) {
+        //stdError << "FEBreadboardEditor::loadFile(): match.captured(1) is " << match.captured(2) << " match.captured(1) is " << match.captured(1) << "\n";
+        height = match.captured(1).toFloat();
+        if (match.captured(2) == "in") {
+            height *= 25.4;
+        }
+    }
+    QRegularExpression fourFloats("^([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)[[:space:]]+([[:digit:]Ee.+-]+)$");
+    //stdError << "FEBreadboardEditor::loadFile(): svg.attribute('viewBox') is " << svg.attribute("viewBox") << "\n";
+    if (svg.attribute("viewBox").contains(fourFloats,&match)) {
+        //stdError << "FEBreadboardEditor::loadFile(): match.captured(0) is " << match.captured(1) << " match.captured(2) is " << match.captured(1) << "\n";
+        //stdError << "FEBreadboardEditor::loadFile(): match.captured(2) is " << match.captured(3) << " match.captured(4) is " << match.captured(3) << "\n";
+        vp.setX(match.captured(1).toFloat());
+        vp.setY(match.captured(2).toFloat());
+        vp.setWidth(match.captured(3).toFloat());
+        vp.setHeight(match.captured(4).toFloat());
+    }
+    //stdError << "FEBreadboardEditor::loadFile(): vp = " << vp << "\n";
+    //stdError << "FEBreadboardEditor::loadFile(): width = " << width << "\n";
+    //stdError << "FEBreadboardEditor::loadFile(): height = " << height << "\n";
+    updateSize(vp,width,height,SizeAndVP::mm);
+    
+    QDomNodeList children = svg.childNodes();
+    for (int i = 0; i < children.length(); i++) {
+        QDomNode c = children.at(i);
+        if (c.isElement()) {
+            QDomElement e = c.toElement();
+            if (e.tagName() == "g" && e.attribute("id") == "breadboard") {
+                processSVGGroup(e);
+            }
+        }
+    }
+    infile.close();
+    setClean();
+}
+
+void FEBreadboardEditor::processSVGTag(QDomElement &element, QDomElement &/*parentGroup*/)
+{
+    if (element.tagName() == "g") {
+        processSVGGroup(element);
+    } else if (element.tagName() == "circle") {
+        processCircle(element);
+    } else if (element.tagName() == "rect") {
+        processRect(element);
+    } else if (element.tagName() == "line") {
+        processLine(element);
+    } else if (element.tagName() == "path") {
+        processPath(element);
+    } else if (element.tagName() == "ellipse") {
+        processEllipse(element);
+    } else if (element.tagName() == "polygon") {
+        processPolygon(element);
+    } else if (element.tagName() == "text") {
+        processText(element);
+    }
+}
+
+void FEBreadboardEditor::processCircle(QDomElement &element)
+{
+    QRegularExpression connectorExpr("^connector([[:digit:]]+)pin$");
+    QRegularExpressionMatch match;
+    int pinnumber = 0;
+    double xpos = 0, ypos = 0, diameter = 1;
+    bool isPin = false;
+     
+    gid++;
+    if (element.attribute("id").contains(connectorExpr,&match)) {
+        pinnumber = match.captured(1).toInt();
+        isPin = true;
+    }
+    xpos = element.attribute("cx").toFloat();
+    ypos = element.attribute("cy").toFloat();
+    diameter = element.attribute("r").toFloat() * 2;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    if (element.attribute("fill") == "none") {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    } else {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    }
+    double radius=diameter/2.0;
+    qreal x = xpos-radius;
+    qreal y = ypos-radius;
+    qreal w = diameter;
+    qreal h = diameter;
+    QGraphicsItem *item = canvas->addEllipse(x,y,w,h,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processCircle(): gid = " << gid << "\n";
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Breadboard));
+    if (isPin) {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Pin));
+        item->setData((int)FEGraphicsScene::Pinno,QVariant(pinnumber));
+        if (pinnumber > pinno) pinno = pinnumber;
+        //stdError << "FEBreadboardEditor::processCircle(): pinnumber = " << pinnumber << "\n";
+    } else {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Circ));
+    }
+}
+
+void FEBreadboardEditor::processRect(QDomElement &element)
+{
+    double xpos = 0, ypos = 0, width = 1, height = 1;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    gid++;
+    xpos = element.attribute("x").toFloat();
+    ypos = element.attribute("y").toFloat();
+    width = element.attribute("width").toFloat();
+    height = element.attribute("height").toFloat();
+    //stdError << "FEBreadboardEditor::processRect(): element.attribute(\"fill\") " << element.attribute("fill") << "\n"; 
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    QGraphicsItem *item = canvas->addRect(xpos,ypos,width,height,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processRect(): gid = " << gid << "\n";
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Rect));
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Breadboard));
+}
+
+void FEBreadboardEditor::processLine(QDomElement &element)
+{
+    double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    QPen pen(Qt::SolidLine);
+    
+    gid++;
+    x1 = element.attribute("x1").toFloat();
+    y1 = element.attribute("y1").toFloat();
+    x2 = element.attribute("x2").toFloat();
+    y2 = element.attribute("y2").toFloat();
+    pen.setColor(QColor(element.attribute("stroke")));
+    pen.setWidthF(element.attribute("stroke-width").toFloat());
+    QGraphicsItem *item = canvas->addLine(x1, y1, x2, y2, pen);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Line));
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Breadboard));
+}
+
+void FEBreadboardEditor::processPath(QDomElement &element)
+{
+}
+
+void FEBreadboardEditor::processPolygon(QDomElement &element)
+{
+    QPolygonF points;
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    gid++;
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    QRegularExpression pointExpr("^([[:digit:].Ee+-]+)[[:space:],]+([[:digit:].Ee+-]+)[[:space:],]*(.*)$");
+    QRegularExpressionMatch match;
+    QString pointString = element.attribute("points");
+    while (pointString.contains(pointExpr,&match)) {
+        QPointF p(match.captured(1).toFloat(),match.captured(2).toFloat());
+        pointString = match.captured(3);
+        points.push_back(p);
+    }
+    QGraphicsItem *item = canvas->addPolygon(points,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    item->setData((int)FEGraphicsScene::Type,
+                  QVariant((int)FEGraphicsScene::Poly));
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Breadboard));
+    
+}
+
+void FEBreadboardEditor::processEllipse(QDomElement &element)
+{
+    QRegularExpression connectorExpr("^connector([[:digit:]]+)pin$");
+    QRegularExpressionMatch match;
+    int pinnumber;
+    double xpos = 0, ypos = 0, rx = 0, ry = 0;
+    bool isPin = false;
+     
+    gid++;
+    if (element.attribute("id").contains(connectorExpr,&match)) {
+        pinnumber = match.captured(1).toInt();
+        isPin = true;
+    }
+    xpos = element.attribute("cx").toFloat();
+    ypos = element.attribute("cy").toFloat();
+    rx = element.attribute("rx").toFloat();
+    ry = element.attribute("ry").toFloat();
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    if (element.attribute("fill") == "none") {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    } else {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    }
+    qreal x = xpos-rx;
+    qreal y = ypos-ry;
+    qreal w = rx*2;
+    qreal h = ry*2;
+    QGraphicsItem *item = canvas->addEllipse(x,y,w,h,pen,brush);
+    item->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processEllipse(): gid = " << gid << "\n";
+    item->setData((int)FEGraphicsScene::Group1,
+                  QVariant((int)FEGraphicsScene::Breadboard));
+    if (isPin) {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Pin));
+        item->setData((int)FEGraphicsScene::Pinno,QVariant(pinnumber));
+        if (pinnumber > pinno) pinno = pinnumber;
+        //stdError << "FEBreadboardEditor::processEllipse(): pinnumber = " << pinnumber << "\n";
+    } else {
+        item->setData((int)FEGraphicsScene::Type,
+                      QVariant((int)FEGraphicsScene::Circ));
+    }
+}
+
+void FEBreadboardEditor::processText(QDomElement &element)
+{
+    QPen pen(Qt::NoPen);
+    QBrush brush(Qt::NoBrush);
+    QFont font;
+    gid++;
+    if (element.attribute("fill") != "none") {
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(QColor(element.attribute("fill")));
+    } else {
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(QColor(element.attribute("stroke")));
+        pen.setWidthF(element.attribute("stroke-width").toFloat());
+    }
+    font.setFamily(element.attribute("font-family"));
+    font.setPointSize(element.attribute("font-size").toFloat());
+    qreal x = element.attribute("x").toFloat();
+    qreal y = element.attribute("y").toFloat();
+    QDomText txt = element.firstChild().toText();
+    QGraphicsSimpleTextItem *titem = canvas->addSimpleText(txt.data(),font);
+    titem->setBrush(brush);
+    titem->setPen(pen);
+    titem->setPos(x,y);
+    titem->setData((int)FEGraphicsScene::Gid,QVariant(gid));
+    //stdError << "FEBreadboardEditor::processText(): gid = " << gid << "\n";
+    titem->setData((int)FEGraphicsScene::Type,
+                   QVariant((int)FEGraphicsScene::Text));
+    titem->setData((int)FEGraphicsScene::Group1,
+                   QVariant((int)FEGraphicsScene::Breadboard));
+    
 }
 
 void FEBreadboardEditor::saveFile(const QString &filename)

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190522.1413>
+//  Last Modified : <190524.2141>
 //
 //  Description	
 //
@@ -60,6 +60,8 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <QVBoxLayout>
 #include <QRectF>
 #include <QVariant>
+#include <QDomNodeList>
+#include <QDomNode>
 
 #include "feedit.h"
 #include "../support/commonDialogs.h"
@@ -399,6 +401,15 @@ void FEEdit::resized(QResizeEvent * event)
     FEEdit::makeVpRect();
 }
 
+void FEEdit::updateSize(const QRectF &vp, qreal width, qreal height, SizeAndVP::UnitsType unit)
+{
+    sizeAndVP->setViewport(vp);
+    sizeAndVP->setUnits(unit);
+    sizeAndVP->setWidth(width);
+    sizeAndVP->setHeight(height);
+    makeVpRect();
+}
+
 
 void FEEdit::makeVpRect()
 {
@@ -625,5 +636,17 @@ QString SizeAndVP::formatZoom(double z)
         return QString("%1:1").arg(z,0,'f',0);
     } else {
         return QString("1:%1").arg(1.0/z,0,'f',0);
+    }
+}
+
+void FEEdit::processSVGGroup(QDomElement &group)
+{
+    QDomNodeList childen = group.childNodes();
+    for (int i = 0; i < childen.length(); i++) {
+        QDomNode cn = childen.at(i);
+        if (cn.isElement()) {
+            QDomElement c = cn.toElement();
+            processSVGTag(c,group);
+        }
     }
 }
