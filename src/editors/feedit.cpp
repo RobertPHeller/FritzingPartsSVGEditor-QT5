@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190526.1031>
+//  Last Modified : <190526.1227>
 //
 //  Description	
 //
@@ -76,7 +76,76 @@ ToolMenuButton::ToolMenuButton(QWidget *parent) : QToolButton(parent)
                      SLOT(setDefaultAction(QAction*)));
 }
 
-
+void FEGraphicsScene::moveItems(qreal dx, qreal dy)
+{
+    ItemList allitems = items();
+    for (items_constIterator i = allitems.begin(); i != allitems.end(); i++) {
+        QGraphicsItem *item = *i;
+        switch (item->type()) {
+        case QGraphicsEllipseItem::Type:
+            {
+                QGraphicsEllipseItem *eitem = (QGraphicsEllipseItem *) item;
+                QRectF rect = eitem->rect();
+                rect.adjust(dx,dy,dx,dy);
+                eitem->setRect(rect);
+                break;
+            }
+        case QGraphicsRectItem::Type:
+            {
+                QGraphicsRectItem *eitem = (QGraphicsRectItem *) item;
+                QRectF rect = eitem->rect();
+                rect.adjust(dx,dy,dx,dy);
+                eitem->setRect(rect);
+                break;
+            }
+        case QGraphicsLineItem::Type:
+            {
+                QGraphicsLineItem *eitem = (QGraphicsLineItem *) item;
+                QLineF line = eitem->line();
+                line.setLine(line.x1()+dx,line.y1()+dy,line.x2()+dx,line.y2()+dy);
+                eitem->setLine(line);
+                break;
+            }
+        case QGraphicsPathItem::Type:
+            {
+                QGraphicsPathItem *eitem = (QGraphicsPathItem *) item;
+                QPainterPath path = eitem->path();
+                for (int i = 0; i < path.elementCount(); i++) {
+                    QPainterPath::Element pEle = path.elementAt(i);
+                    pEle.x += dx;
+                    pEle.y += dy;
+                }
+                eitem->setPath(path);
+                break;
+            }
+        case QGraphicsPolygonItem::Type:
+            {
+                QGraphicsPolygonItem *eitem = (QGraphicsPolygonItem *) item;
+                QPolygonF points = eitem->polygon();
+                for (QPolygonF::iterator ip = points.begin();
+                     ip !=  points.end();
+                     ip++) {
+                    QPointF p = *ip;
+                    p.setX(p.x()+dx);
+                    p.setY(p.y()+dy);
+                }
+                eitem->setPolygon(points);
+                break;
+            }
+        case QGraphicsSimpleTextItem::Type:
+            {
+                QGraphicsSimpleTextItem *titem = (QGraphicsSimpleTextItem *) item;
+                QPointF p = titem->pos();
+                p.setX(p.x()+dx);
+                p.setY(p.y()+dy);
+                titem->setPos(p);
+                break;
+            }
+        default:
+            break;
+        }
+    }
+}
 
 FEEdit::FEEdit(SizeAndVP::UnitsType units, double width, 
                double height, 
@@ -246,6 +315,23 @@ void FEEdit::setsize()
 
 void FEEdit::shrinkwrap()
 {
+    canvas->removeItem(_vpRect);
+    QRectF bbox = canvas->itemsBoundingRect();
+    //stdError << " FEEdit::shrinkwrap(): bbox is " << bbox << "\n";
+    canvas->moveItems(0-bbox.x(),0-bbox.y());
+    //bbox = canvas->itemsBoundingRect();
+    //stdError << " FEEdit::shrinkwrap(): bbox (after move) is " << bbox << "\n";
+    canvas->addItem(_vpRect);
+    QRectF vp;
+    sizeAndVP->Viewport(vp);
+    double scaleW = bbox.width() / vp.width();
+    double scaleH = bbox.height() / vp.height();
+    double newwidth = Width()*scaleW;
+    double newheight = Height()*scaleH;
+    vp.setWidth(bbox.width());
+    vp.setHeight(bbox.height());
+    updateSize(vp,newwidth,newheight,Units());
+    setDirty();
 }
 
 

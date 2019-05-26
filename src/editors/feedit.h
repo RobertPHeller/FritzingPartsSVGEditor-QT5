@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 16:33:47 2019
-//  Last Modified : <190526.1025>
+//  Last Modified : <190526.1144>
 //
 //  Description	
 //
@@ -140,6 +140,7 @@ public:
         }
         return result;
     }
+    void moveItems(qreal dx, qreal dy);
 };
 
 
