@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 17 20:02:21 2019
-#  Last Modified : <190517.2124>
+#  Last Modified : <190526.1809>
 #
 #  Description	
 #
@@ -44,13 +44,26 @@
 
 exists(/usr/bin/doxygen) {
    DOXYGEN = "/usr/bin/doxygen"
-   htmldoc.target = release/html/index.html
+   htmldoc.target = $(OBJECTS_DIR)html/index.html
    htmldoc.commands = $$DOXYGEN Doxyfile
-   pdfdoc.target  = release/latex/refman.pdf
+   htmldoc.depends = src/main.cpp src/editors/feedit.cpp \
+   		    src/editors/fbeedit.cpp \
+   		    src/editors/fseedit.cpp \
+   		    src/editors/fpeedit.cpp \
+   		    src/extradoc/COPYING.h \
+   		    src/extradoc/Help.h
+   pdfdoc.target  = $(OBJECTS_DIR)latex/refman.pdf
    pdfdoc.depends = htmldoc
-   pdfdoc.commands = make -C release/latex refman.pdf
-   QMAKE_EXTRA_TARGETS += htmldoc pdfdoc
-   PRE_TARGETDEPS += release/html/index.html release/latex/refman.pdf
+   pdfdoc.commands = make -C $(OBJECTS_DIR)latex refman.pdf
+   htmldoc_resource.target = $(OBJECTS_DIR)qrc_htmldoc.o
+   htmldoc_resource.commands = src/scripts/buildqrc.sh $(OBJECTS_DIR)html $(OBJECTS_DIR)htmldoc.qrc; \
+   	/usr/lib64/qt5/bin/rcc -name htmldoc $(OBJECTS_DIR)htmldoc.qrc -o $(OBJECTS_DIR)qrc_htmldoc.cpp; \
+   	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o $(OBJECTS_DIR)qrc_htmldoc.o $(OBJECTS_DIR)qrc_htmldoc.cpp
+   htmldoc_resource.depends = src/scripts/buildqrc.sh htmldoc
+   QMAKE_EXTRA_TARGETS += htmldoc pdfdoc htmldoc_resource
+   PRE_TARGETDEPS += $(OBJECTS_DIR)html/index.html $(OBJECTS_DIR)latex/refman.pdf
+   OBJECTS += $(OBJECTS_DIR)qrc_htmldoc.o
 } else {
    message("Doxygen not found.  Documentation will not be built.")
 }
+

@@ -38,7 +38,7 @@ PROJECT_NAME           = "Fritzing Parts SVG Editor (C++/Qt5 version)"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = 
+PROJECT_NUMBER         = "0.0.0"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -216,7 +216,7 @@ SEPARATE_MEMBER_PAGES  = NO
 # uses this value to replace tabs by spaces in code fragments.
 # Minimum value: 1, maximum value: 16, default value: 4.
 
-TAB_SIZE               = 4
+TAB_SIZE               = 8
 
 # This tag can be used to specify a number of aliases that act as commands in
 # the documentation. An alias has the form:
@@ -460,7 +460,7 @@ EXTRACT_ANON_NSPACES   = NO
 # section is generated. This option has no effect if EXTRACT_ALL is enabled.
 # The default value is: NO.
 
-HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_MEMBERS     = YES
 
 # If the HIDE_UNDOC_CLASSES tag is set to YES, doxygen will hide all
 # undocumented classes that are normally visible in the class hierarchy. If set
@@ -468,7 +468,7 @@ HIDE_UNDOC_MEMBERS     = NO
 # no effect if EXTRACT_ALL is enabled.
 # The default value is: NO.
 
-HIDE_UNDOC_CLASSES     = NO
+HIDE_UNDOC_CLASSES     = YES
 
 # If the HIDE_FRIEND_COMPOUNDS tag is set to YES, doxygen will hide all friend
 # (class|struct|union) declarations. If set to NO these declarations will be
@@ -753,11 +753,13 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = src/main.cpp src/editors/feedit.cpp \
-                         src/editors/fbeedit.cpp \
-                         src/editors/fseedit.cpp \
-                         src/editors/fpeedit.cpp \
-                         src/extradoc/COPYING.h
+INPUT                  = src/main.cpp \
+                         src/extradoc/COPYING.h \
+                         src/extradoc/Help.h
+#                         src/editors/feedit.cpp \
+#                         src/editors/fbeedit.cpp \
+#                         src/editors/fseedit.cpp \
+#                         src/editors/fpeedit.cpp \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -845,7 +847,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             =
+IMAGE_PATH             = ../FritzingPartsSVGEditor/ScreenShots/
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -1009,7 +1011,7 @@ CLANG_OPTIONS          =
 # classes, structs, unions or interfaces.
 # The default value is: YES.
 
-ALPHABETICAL_INDEX     = YES
+ALPHABETICAL_INDEX     = NO
 
 # The COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns in
 # which the alphabetical index list will be split.

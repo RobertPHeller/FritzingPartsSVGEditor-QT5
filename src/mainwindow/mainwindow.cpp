@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 12:20:12 2019
-//  Last Modified : <190522.1621>
+//  Last Modified : <190526.1825>
 //
 //  Description	
 //
@@ -51,6 +51,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include "../editors/fpeedit.h"
 #include "../support/debug.h"
 #include "../support/commonDialogs.h"
+#include "../helpwidget/helpwidget.h"
 
 MainWindow::MainWindow(const QString &fileName)
 {
@@ -63,6 +64,7 @@ MainWindow::MainWindow(const QString &fileName)
     //createToolBars();
     createStatusBar();
     
+    HelpWidget::setDefaults(":/html","index.html");
     readSettings();
     
     breadboardeditor = new FEBreadboardEditor(_units,_width,_height,_viewport);
@@ -388,7 +390,8 @@ const QString MainWindow::getSavePrefix (const QString& defaultdir)
     return filename;
 }
 
-void MainWindow::help(const QString &/*helpIndexText*/)
+void MainWindow::help(const QString &helpIndexText)
 {
+    HelpWidget::Help(helpIndexText);
 }
 
