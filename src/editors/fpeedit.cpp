@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:51:02 2019
-//  Last Modified : <190525.2140>
+//  Last Modified : <190527.0902>
 //
 //  Description	
 //
@@ -39,6 +39,58 @@
 // 
 //
 //////////////////////////////////////////////////////////////////////////////
+
+/** @page FritzingPartsPCBEditor PCB Editor
+  * The PCB editor implements six graphical elements: pins, rectangles, lines, 
+  * circles, arcs, and text, using six tool buttons. Each of the tool buttons 
+  * opens a dialog box where the user can enter the information about the 
+  * graphical element.
+  * @section PCBPin Pins
+  * PCB pins are always drawn as circles, with a possible hole drilled in the 
+  * center.  The PCB pin dialog box, shown below, asks for the position (center),
+  * the diameter, the drill size, and the pin number.  Pins are automatically 
+  * auto-incremented starting at the last pin entered.  The position is in 
+  * viewport coordinates, as are the diameters. The default color is copper and
+  * pins are always on the copper layers.
+  * @image latex PCBPin.png "PCB Pin Dialog" width=4in
+  * @image html  PCBPinSmall.png
+  * @section PCBRect Rectangles
+  * Rectangles can only be an outline.  The PCB rectangle dialog box, shown 
+  * below, asks for the position (upper left corner), size (width and height), 
+  * and the line thickness.  The position and size are in viewport coordinates. 
+  * The color is white and rectangles are always on the silkscreen.
+  * @image latex PCBRect.png "PCB Rectangle Dialog" width=4in
+  * @image html  PCBRectSmall.png
+  * @section PCBLine Lines
+  * The PCB line dialog box, shown below, asks for the endpoints of the
+  * line (X1, Y1, X2, Y2), and the line thickness. The endpoints are
+  * in viewport coordinates. The color is white and lines are always on the 
+  * silkscreen.
+  * @image latex PCBLine.png "PCB Line Dialog" width=4in
+  * @image html  PCBLineSmall.png
+  * @section PCBCirc Circles
+  * PCB circles can be filled or hollow. The PCB circle dialog box, shown below, 
+  * asks for the position (center), the diameter, and the center size (hole 
+  * diameter).  The position and the diameters are in viewport coordinates. The 
+  * color is white and circles are always on the silkscreen.
+  * @image latex PCBCirc.png "PCB Circle Dialog" width=4in
+  * @image html  PCBCircSmall.png
+  * @section PCBArc  Arcs
+  * PCB arcs can be either pie slices or bare arcs.  If the center  diameter,
+  * the arc will be a pie slice (filled), otherwise, the arc will be a bare arc. 
+  * The PCB arc dialog box, shown below, asks for the position (center), the 
+  * diameter, and the center size (hole diameter).  The position and the 
+  * diameters are in viewport coordinates. The color  is white and arcs are 
+  * always on the silkscreen.
+  * @image latex PCBArc.png "PCB Arc Dialog" width=4in
+  * @image html  PCBArcSmall.png
+  * @section PCBText Text
+  * The PCB text dialog box, shown below, asks for the position (lower  left), 
+  * the size in points, the font, and the text. The position  is in viewport
+  * coordinates. The color is black and text is always on the silkscreen.
+  * @image latex PCBText.png "PCB Text Dialog" width=4in
+  * @image html  PCBTextSmall.png
+  */
 
 static const char rcsid[] = "@(#) : $Id$";
 

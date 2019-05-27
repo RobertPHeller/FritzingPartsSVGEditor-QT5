@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:49:56 2019
-//  Last Modified : <190526.1227>
+//  Last Modified : <190527.0856>
 //
 //  Description	
 //
@@ -39,6 +39,44 @@
 // 
 //
 //////////////////////////////////////////////////////////////////////////////
+
+
+/** @page FritzingPartsEditor Common GUI elements
+  * @section CoordinateInfo Coordinate Information
+  * Along the bottom of each tab pane is information about the coordinate system
+  * in use for the current pane.  First (going from left to right) is the 
+  * physical size, in either milimeters or inches, then the current viewport, 
+  * and then finally the current pointer position in the viewport coordinate
+  * system.  Additionally, a dashed box is shown on the drawing area showing the
+  * bounds of the viewport coordinate system.
+  * @addindex Coordinate System
+  * @section ToolButtons Tool Buttons
+  * To the right of the drawing display area are a collection of tool buttons.
+  * There six buttons for inserting graphical elements.  These buttons are tab
+  * specific and their functionallity is described in the tab-specific sections 
+  * of this manual.  The bottom three buttons are the same for all three tabs.
+  * The bottom threse buttons are:
+  * <dl>
+  * <dt>Size</dt><dd>The \b Side tool button changes the coordinate system. It
+  * displays a dialog box asking for new values for the width, height, units,
+  * and viewport.</dd>
+  * <dt>ShrinkWrap</dt><dd>The \b ShrinkWrap tool button "shrink wraps" a 
+  * (presumably) finished part.  It recomputes a viewport that just encloses the 
+  * part.  This includes computing the exact size of the part.</dd>
+  * <dt>Zoom</dt><dd>The \b Zoom tool button lets you zoom in or out. See 
+  * \ref bindings.</dd>
+  * </dl>
+  * @section bindings Keyboard and mouse bindings
+  * There are some common keyboard and pointer bindings. There is a context menu
+  * bound to the right pointer button.  Right-clicking on a graphical element 
+  * brings up a menu of things you can do to that element: delete or edit, with
+  * keyboard accelerators Delete and E, respectively.
+  *
+  * Additionally, the F1 key is bound to zoom in, the F2 key is bound to zoom out,
+  * and the F3 is bound to zoom 1:1.
+  */ 
+
+
 
 static const char rcsid[] = "@(#) : $Id$";
 

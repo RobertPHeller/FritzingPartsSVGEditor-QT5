@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:22 2019
-//  Last Modified : <190525.1918>
+//  Last Modified : <190527.0859>
 //
 //  Description	
 //
@@ -39,6 +39,57 @@
 // 
 //
 //////////////////////////////////////////////////////////////////////////////
+
+/** @page FritzingPartsBreadboardEditor Breadboard Editor
+  * The breadboard editor implements six graphical elements: pins, 
+  * rectangles, lines, circles, arcs, and text, using six tool buttons.
+  * Each of the tool buttons opens a dialog box where the user can enter the
+  * information about the graphical element.
+  * @section BreadboardPin Pins
+  * Breadboard pins are always drawn as filled circles.  The breadboard pin 
+  * dialog box, shown below, asks for the position (center), the diameter, the
+  * color, and the pin number.  Pins are automatically auto-incremented starting 
+  * at the last pin entered.  The position is in viewport coordinates, as is the 
+  * diameter. The default color is black.
+  * @image latex BreadboardPin.png "Breadboard Pin Dialog" width=4in
+  * @image html  BreadboardPinSmall.png
+  * @section BreadboardRect Rectangles
+  * Rectangles can be filled with a solid color or just be an outline.  The 
+  * breadboard rectangle dialog box, shown below, asks for the position (upper 
+  * left corner), size (width and height), the line thickness (for outline 
+  * rectangles), color, and if you want the rectangle filled or not.  The 
+  * position and size are in viewport coordinates. The default color is black.
+  * @image latex BreadboardRect.png "Breadboard Rectangle Dialog" width=4in
+  * @image html  BreadboardRectSmall.png
+  * @section BreadboardLine Lines
+  * The breadboard line dialog box, shown below, asks for the endpoints of the
+  * line (X1, Y1, X2, Y2), the line thickness and the color. The endpoints are
+  * in viewport coordinates. The default color is black.
+  * @image latex BreadboardLine.png "Breadboard Line Dialog" width=4in
+  * @image html  BreadboardLineSmall.png
+  * @section BreadboardCirc Circles
+  * Breadboard circles can be filled or hollow. The breadboard circle dialog 
+  * box, shown below, asks for the position (center), the diameter, the center 
+  * size (hole diameter), and the color.  The position and the diameters are in
+  * viewport coordinates. The default color is black.
+  * @image latex BreadboardCirc.png "Breadboard Circle Dialog" width=4in
+  * @image html  BreadboardCircSmall.png
+  * @section BreadboardArc  Arcs
+  * Breadboard arcs can be either pie slices or bare arcs.  If the center 
+  * diameter, the arc will be a pie slice (filled), otherwise, the arc will be a
+  * bare arc. The breadboard arc dialog box, shown below, asks for the position 
+  * (center), the diameter, the center size (hole diameter), and the color.  The
+  * position  and the diameters are in viewport coordinates. The default color 
+  * is black.
+  * @image latex BreadboardArc.png "Breadboard Arc Dialog" width=4in
+  * @image html  BreadboardArcSmall.png
+  * @section BreadboardText Text
+  * The breadboard text dialog box, shown below, asks for the position (lower 
+  * left), the size in points, the font, the text, and the color. The position 
+  * is in viewport coordinates. The default color is black.
+  * @image latex BreadboardText.png "Breadboard Text Dialog" width=4in
+  * @image html  BreadboardTextSmall.png
+  */
 
 static const char rcsid[] = "@(#) : $Id$";
 

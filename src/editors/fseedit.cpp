@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu May 16 17:50:41 2019
-//  Last Modified : <190525.2037>
+//  Last Modified : <190527.0901>
 //
 //  Description	
 //
@@ -39,6 +39,67 @@
 // 
 //
 //////////////////////////////////////////////////////////////////////////////
+
+/** @page FritzingPartsSchematicEditor Schematic Editor
+  * The schematic editor implements six graphical elements: pins,
+  * rectangles, lines, circles, arcs, and text, using six tool buttons.
+  * Each of the tool buttons opens a dialog box where the user can enter the
+  * information about the graphical element.
+  * @section SchematicPin Pins
+  * The Schematic implements "pins" as short lines with a small filled circle
+  * at the end, meant to be used as a connection point.  The line can have an 
+  * optional larger outline circle (at the opposite end from the connection) to 
+  * indicate an inverted input or output.  Also pins on a schematic are labeled 
+  * with at least a pin number and optionally a pin name.  The schematic pin 
+  * dialog, shown below, asks for the position (this is the center of the small 
+  * filled circle at the end of the line), the orientation of the pin (this
+  * corresponds to the side of the part's (rectangular) body: left, right, top,
+  * bottom), whether the pin is inverted, the pin number, the (optional) pin
+  * name, the color, the line thickness, the size of the textual elements, and 
+  * the font to use for the textual elements.  
+  * @image latex SchematicPin.png "Schematic Pin Dialog" width=4in
+  * @image html  SchematicPinSmall.png
+  * The length would always be the distance from the part's (rectangular) body 
+  * to the center of the connection point, as shown here (both pins have the 
+  * same length):
+  * @image latex SchematicPinExample.png "Example pins: both oriented left, both the same length."
+  * @image html SchematicPinExample.png
+  * @section SchematicRect Rectangles
+  * Rectangles can only be an outline.  The schematic rectangle dialog box, 
+  * shown below, asks for the position (upper left corner), size (width and
+  * height), the line thickness, and color.  The  position and size are in 
+  * viewport coordinates. The default color is black.
+  * @image latex SchematicRect.png "Schematic Rectangle Dialog" width=4in
+  * @image html  SchematicRectSmall.png
+  * @section SchematicLine Lines
+  * The schematic line dialog box, shown below, asks for the endpoints of the
+  * line (X1, Y1, X2, Y2), the line thickness and the color. The endpoints are
+  * in viewport coordinates. The default color is black.
+  * @image latex SchematicLine.png "Schematic Line Dialog" width=4in
+  * @image html  SchematicLineSmall.png
+  * @section SchematicCirc Circles
+  * Schematic circles can be filled or hollow. The schematic circle dialog 
+  * box, shown below, asks for the position (center), the diameter, the center 
+  * size (hole diameter), and the color.  The position and the diameters are in
+  * viewport coordinates. The default color is black.
+  * @image latex SchematicCirc.png "Schematic Circle Dialog" width=4in
+  * @image html  SchematicCircSmall.png
+  * @section SchematicArc  Arcs
+  * Schematic arcs can be either pie slices or bare arcs.  If the center 
+  * diameter, the arc will be a pie slice (filled), otherwise, the arc will be a
+  * bare arc. The schematic arc dialog box, shown below, asks for the position 
+  * (center), the diameter, the center size (hole diameter), and the color.  The
+  * position  and the diameters are in viewport coordinates. The default color 
+  * is black.
+  * @image latex SchematicArc.png "Schematic Arc Dialog" width=4in
+  * @image html  SchematicArcSmall.png
+  * @section SchematicText Text
+  * The schematic text dialog box, shown below, asks for the position (lower 
+  * left), the size in points, the font, the text, and the color. The position 
+  * is in viewport coordinates. The default color is black.
+  * @image latex SchematicText.png "Schematic Text Dialog" width=4in
+  * @image html  SchematicTextSmall.png
+  */
 
 static const char rcsid[] = "@(#) : $Id$";
 
