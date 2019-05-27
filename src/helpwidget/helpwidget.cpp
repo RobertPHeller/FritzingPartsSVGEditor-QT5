@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun May 26 15:18:45 2019
-//  Last Modified : <190526.2000>
+//  Last Modified : <190526.2026>
 //
 //  Description	
 //
@@ -117,7 +117,7 @@ HelpWidget::HelpWidget(QWidget *parent) : QDialog(parent)
     buttons->addButton(QDialogButtonBox::Close);
     QPushButton *back = new QPushButton(tr("Back"));
     buttons->addButton(back,QDialogButtonBox::ActionRole);
-    QPushButton *forward = new QPushButton(tr("Back"));
+    QPushButton *forward = new QPushButton(tr("Forward"));
     buttons->addButton(forward,QDialogButtonBox::ActionRole);
     buttons->addButton(QDialogButtonBox::Help);
     connect(buttons,SIGNAL(rejected()),this,SLOT(accept()));

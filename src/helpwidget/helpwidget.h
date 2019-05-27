@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun May 26 15:17:47 2019
-//  Last Modified : <190526.1948>
+//  Last Modified : <190526.2024>
 //
 //  Description	
 //
@@ -65,6 +65,7 @@ public:
 protected:
     void mousePressEvent(QMouseEvent *e)
     {
+        
         QString anchor = anchorAt(QPoint(e->x(),e->y()));
         if (anchor.isEmpty()) return;
         //stdError << "ContentsBrowser::mousePressEvent(): anchor is " << anchor << "\n";
