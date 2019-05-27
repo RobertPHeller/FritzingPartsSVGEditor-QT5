@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 17 20:02:21 2019
-#  Last Modified : <190526.1809>
+#  Last Modified : <190527.0844>
 #
 #  Description	
 #
@@ -43,6 +43,10 @@
 ##############################################################################
 
 exists(/usr/bin/doxygen) {
+   DISTFILES += \
+   	Doxyfile \
+   	src/scripts/buildqrc.sh \
+   	
    DOXYGEN = "/usr/bin/doxygen"
    htmldoc.target = $(OBJECTS_DIR)html/index.html
    htmldoc.commands = $$DOXYGEN Doxyfile
