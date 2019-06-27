@@ -1,0 +1,9 @@
+language: cpp
+dist: bionic
+before_install:
+  - sudo apt-get install -y qt5-default qtbase5-dev qtbase5-dev-tools qt5-qmake libqt5svg5-dev
+
+script:
+  - qmake
+  - make -j4
+
