@@ -253,7 +253,7 @@ QDebug stdError = qDebug(); //(new StdError(NULL));
 int main(int argc, char *argv[])
 {
     Q_INIT_RESOURCE(FritzingPartsSVGEditor);
-    Q_INIT_RESOURCE(htmldoc);
+    // Q_INIT_RESOURCE(htmldoc);
     FEApplication app(argc, argv);
     QStringList args = app.arguments();
     QString file("");
