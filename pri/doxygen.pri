@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri May 17 20:02:21 2019
-#  Last Modified : <190527.0844>
+#  Last Modified : <190702.1006>
 #
 #  Description	
 #
@@ -68,6 +68,6 @@ exists(/usr/bin/doxygen) {
    PRE_TARGETDEPS += $(OBJECTS_DIR)html/index.html $(OBJECTS_DIR)latex/refman.pdf
    OBJECTS += $(OBJECTS_DIR)qrc_htmldoc.o
 } else {
-   message("Doxygen not found.  Documentation will not be built.")
+   error("doxygen not found.  Please install doxygen and LaTeX: apt-get install doxygen latex")
 }
 
